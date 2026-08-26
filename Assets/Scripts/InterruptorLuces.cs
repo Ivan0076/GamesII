@@ -1,19 +1,39 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class InterruptorLuz : MonoBehaviour
+public class InterruptorLuces : MonoBehaviour
 {
     [Header("Control de luces")]
     public ControlLuces controlLuces;
 
-    [Header("Control de la asesina")]
-    public ControlAsesina controlAsesina;
+    [Header("Interacción")]
+    public Camera playerCamera;
+    public float distanciaInteraccion = 3f;
 
     private void Update()
     {
         if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
         {
-            ActivarInterruptor();
+            IntentarActivar();
+        }
+    }
+
+    private void IntentarActivar()
+    {
+        if (playerCamera == null)
+            return;
+
+        Ray ray = new Ray(
+            playerCamera.transform.position,
+            playerCamera.transform.forward
+        );
+
+        if (Physics.Raycast(ray, out RaycastHit hit, distanciaInteraccion))
+        {
+            if (hit.collider.gameObject == gameObject)
+            {
+                ActivarInterruptor();
+            }
         }
     }
 
@@ -22,12 +42,7 @@ public class InterruptorLuz : MonoBehaviour
         if (controlLuces != null)
         {
             controlLuces.EncenderLuces();
-            Debug.Log("Interruptor activado.");
-        }
-
-        if (controlAsesina != null)
-        {
-            controlAsesina.DesaparecerAsesina();
+            Debug.Log("🔘 Interruptor activado.");
         }
     }
 }
