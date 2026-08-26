@@ -21,7 +21,7 @@ public class AsesinaCerebro : MonoBehaviour
     [Header("Memoria del enemigo")]
     public float tiempoAntesDeOlvidar = 2f;
 
-    [Header("Velocidades")] 
+    [Header("Velocidades")]
     public float velocidadPatrulla = 2.5f;
     public float velocidadPersecucion = 5f;
 
@@ -67,7 +67,7 @@ public class AsesinaCerebro : MonoBehaviour
             estadoActual = Estado.Persecucion;
             temporizadorPerdida = 0f;
             Debug.Log("¡Jugador avistado! Persiguiendo.");
-            ActualizarApariencia(); // Actualiza color y velocidad
+            ActualizarApariencia();
         }
         else if (estadoActual == Estado.Persecucion && !jugadorVisible)
         {
@@ -86,7 +86,7 @@ public class AsesinaCerebro : MonoBehaviour
                 esperando = false;
                 temporizadorEspera = 0f;
                 temporizadorPerdida = 0f;
-                ActualizarApariencia(); // Actualiza color y velocidad
+                ActualizarApariencia();
             }
         }
         else
@@ -162,7 +162,6 @@ public class AsesinaCerebro : MonoBehaviour
         if (agente.isStopped) agente.isStopped = false;
     }
 
-    // -------------------- MÉTODO CENTRAL (COLOR + VELOCIDAD + ANIMACIONES) --------------------
     void ActualizarApariencia()
     {
         // 1. Cambiar color
@@ -172,20 +171,20 @@ public class AsesinaCerebro : MonoBehaviour
             rendererCuerpo.material.color = nuevoColor;
         }
 
-        // 2. Cambiar velocidad del agente (NUEVO)
+        // 2. Cambiar velocidad del agente
         if (agente != null)
         {
             agente.speed = (estadoActual == Estado.Patrulla) ? velocidadPatrulla : velocidadPersecucion;
         }
 
-        // 3. Animaciones (preparado para futuro)
-        /*
-        Animator anim = GetComponent<Animator>();
-        if (anim != null)
-        {
-            anim.SetBool("Persiguiendo", estadoActual == Estado.Persecucion);
-        }
-        */
+    }
+
+    // -------------------- PROPIEDAD PÚBLICA PARA CONSULTAR EL ESTADO --------------------
+    /// Devuelve true si la asesina está en modo persecución.
+
+    public bool EstaPersiguiendo
+    {
+        get { return estadoActual == Estado.Persecucion; }
     }
 
     // -------------------- GIZMOS --------------------

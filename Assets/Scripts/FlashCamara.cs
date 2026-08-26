@@ -32,6 +32,6 @@ public class FlashCamara : MonoBehaviour
     {
         Debug.Log("¡Dinosaurio atrapado!");
 
-        dinosaurio.ReiniciarRuta();
+        dinosaurio.Atrapar();
     }
 }
