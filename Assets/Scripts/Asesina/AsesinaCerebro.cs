@@ -1,6 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
 
+public enum EstadosAsesina { 
+    esta_atacando,
+    esta_persiguiendo,
+}
+
 public class AsesinaCerebro : MonoBehaviour
 {
     // ---- Referencias ----

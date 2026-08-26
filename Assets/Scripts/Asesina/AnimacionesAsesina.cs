@@ -20,10 +20,13 @@ public class AnimacionesAsesina : MonoBehaviour
 
     private void Update()
     {
-        if (cerebro == null || animator == null) return;
+        if (cerebro == null || animator == null) { 
+            
+        }
+        
 
         // Obtener velocidad real del agente
-        float velocidad = cerebro.agente != null ? cerebro.agente.velocity.magnitude : 0f;
+        float velocidad = cerebro.agente.velocity.magnitude;
         bool persiguiendo = cerebro.EstaPersiguiendo;
 
         // Actualizar parámetros
@@ -32,5 +35,8 @@ public class AnimacionesAsesina : MonoBehaviour
 
         // Depuración (puedes comentar después)
         Debug.Log($"Velocidad: {velocidad:F2}, Persiguiendo: {persiguiendo}");
+
+        Debug.Log($"Animator: {(animator != null)}, Cerebro: {(cerebro != null)}, Velocidad: {velocidad}, Persiguiendo: {persiguiendo}");
+
     }
 }
