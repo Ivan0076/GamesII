@@ -11,6 +11,7 @@ public class ControlAsesina : MonoBehaviour
 
     private float temporizador;
     private bool asesinaActiva = false;
+    private bool enemigoHabilitado = false; // ← Nuevo: controla si puede aparecer
 
     void Start()
     {
@@ -20,10 +21,16 @@ public class ControlAsesina : MonoBehaviour
         {
             asesina.SetActive(false);
         }
+
+        // El enemigo se habilita mediante EnemigoRequisitos
+        enemigoHabilitado = false;
     }
 
     void Update()
     {
+        // Solo procesar si el enemigo está habilitado
+        if (!enemigoHabilitado) return;
+
         if (!asesinaActiva)
         {
             temporizador -= Time.deltaTime;
@@ -37,6 +44,15 @@ public class ControlAsesina : MonoBehaviour
         {
             ComprobarLuces();
         }
+    }
+
+    /// <summary>
+    /// Método llamado por EnemigoRequisitos cuando se cumplen los requisitos.
+    /// </summary>
+    public void IniciarEnemigo()
+    {
+        enemigoHabilitado = true;
+        Debug.Log("Asesina habilitada (requisitos cumplidos). Iniciando temporizador...");
     }
 
     void AparecerAsesina()
