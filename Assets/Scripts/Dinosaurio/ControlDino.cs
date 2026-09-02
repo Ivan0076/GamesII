@@ -3,78 +3,56 @@ using UnityEngine;
 public class ControlDino : MonoBehaviour
 {
     [Header("Referencias")]
-    public GameObject dinosaurio;            // El GameObject del dinosaurio (con DinoCerebro)
-    public DinoCerebro dinoCerebro;          // Referencia al script DinoCerebro
+    public GameObject dinosaurio;               // El GameObject del dinosaurio (con DinoCerebro)
 
     [Header("Tiempo de aparición")]
-    public float tiempoAntesDeAparecer = 5f; // Tiempo tras cumplir requisitos
+    public float tiempoAntesDeAparecer = 15f;
 
     private float temporizador;
     private bool dinoActivo = false;
-    private bool habilitado = false;          // Controla si puede iniciar el temporizador
+    private bool enemigoHabilitado = false;
 
     void Start()
     {
-        // Buscar referencias si no se asignaron
-        if (dinosaurio == null)
-            dinosaurio = gameObject;
-
-        if (dinoCerebro == null)
-            dinoCerebro = GetComponent<DinoCerebro>();
-
-        // Desactivar el dinosaurio al inicio
-        if (dinosaurio != null)
-            dinosaurio.SetActive(false);
-
         temporizador = tiempoAntesDeAparecer;
-        habilitado = false;
+
+        if (dinosaurio != null)
+        {
+            dinosaurio.SetActive(false);
+        }
+
+        enemigoHabilitado = false;
     }
 
     void Update()
     {
-        // Solo procesar si el dinosaurio está habilitado
-        if (!habilitado) return;
-        if (dinoActivo) return;
+        if (!enemigoHabilitado) return;
 
-        temporizador -= Time.deltaTime;
-
-        if (temporizador <= 0f)
+        if (!dinoActivo)
         {
-            AparecerDinosaurio();
+            temporizador -= Time.deltaTime;
+
+            if (temporizador <= 0f)
+            {
+                AparecerDino();
+            }
         }
     }
 
-    /// <summary>
-    /// Método llamado por EnemigoRequisitos cuando se cumplen los requisitos.
-    /// </summary>
-    public void IniciarDino()
+    public void IniciarEnemigo()
     {
-        habilitado = true;
+        enemigoHabilitado = true;
         Debug.Log("Dinosaurio habilitado (requisitos cumplidos). Iniciando temporizador...");
     }
 
-    private void AparecerDinosaurio()
+    void AparecerDino()
     {
         dinoActivo = true;
 
         if (dinosaurio != null)
         {
             dinosaurio.SetActive(true);
+            Debug.Log("¡El dinosaurio ha aparecido!");
         }
-
-        // Opcional: si el cerebro tiene algún método de inicio, llamarlo
-        // if (dinoCerebro != null) dinoCerebro.Iniciar();
-
-        Debug.Log("¡El dinosaurio apareció!");
-    }
-
-    // Método para reiniciar (si se necesita)
-    public void Reiniciar()
-    {
-        dinoActivo = false;
-        habilitado = false;
-        temporizador = tiempoAntesDeAparecer;
-        if (dinosaurio != null)
-            dinosaurio.SetActive(false);
     }
 }

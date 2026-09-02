@@ -33,7 +33,7 @@ public class DinoCerebro : MonoBehaviour
         }
     }
 
-    private void Start()
+    private void OnEnable()
     {
         animator = GetComponentInChildren<Animator>();
         if (animator == null)

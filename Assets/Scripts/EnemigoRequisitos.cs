@@ -3,30 +3,25 @@ using System.Collections.Generic;
 
 public class EnemigoRequisitos : MonoBehaviour
 {
-    [Header("Prerrequisitos")]
+    [Header("Prerrequisitos para activar este enemigo")]
     public List<TareaBase> tareasNecesarias;
 
     [Header("Opciones")]
     public bool comprobarAlInicio = true;
 
-    // Referencia a los controladores (puedes usar uno u otro)
-    public ControlAsesina controlAsesina;
-    public ControlDino controlDino;
-
     private bool activado = false;
 
     void Start()
     {
-        // Buscar controladores si no se asignaron
-        if (controlAsesina == null)
-            controlAsesina = GetComponent<ControlAsesina>();
-        if (controlDino == null)
-            controlDino = GetComponent<ControlDino>();
-
-        // Suscribirse al evento de tareas completadas
         GestorTareas gestor = FindFirstObjectByType<GestorTareas>();
         if (gestor != null)
+        {
             gestor.TareaCompletada += OnTareaCompletada;
+        }
+        else
+        {
+            Debug.LogWarning("No se encontró GestorTareas. Los requisitos no se actualizarán.");
+        }
 
         if (comprobarAlInicio)
             EvaluarRequisitos();
@@ -79,12 +74,7 @@ public class EnemigoRequisitos : MonoBehaviour
 
         Debug.Log($"Enemigo '{gameObject.name}' activado (requisitos cumplidos).");
 
-        // Llamar al controlador correspondiente
-        if (controlAsesina != null)
-            controlAsesina.IniciarEnemigo();
-        else if (controlDino != null)
-            controlDino.IniciarDino();
-        else
-            gameObject.SetActive(true);
+        // Llamar a IniciarEnemigo en el ControlAsesina o ControlDino del mismo GameObject
+        SendMessage("IniciarEnemigo", SendMessageOptions.DontRequireReceiver);
     }
 }

@@ -1118,7 +1118,6 @@ GameObject:
   - component: {fileID: 209167818}
   - component: {fileID: 209167817}
   - component: {fileID: 209167823}
-  - component: {fileID: 209167825}
   - component: {fileID: 209167816}
   - component: {fileID: 209167824}
   m_Layer: 0
@@ -1333,24 +1332,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &209167825
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 209167814}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a3d04aaf75eef014695f05b8039bf1c6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  tareasNecesarias:
-  - {fileID: 720375764}
-  - {fileID: 1047534940}
-  comprobarAlInicio: 1
-  controlAsesina: {fileID: 0}
-  controlDino: {fileID: 0}
 --- !u!1 &246286598
 GameObject:
   m_ObjectHideFlags: 0
@@ -2568,7 +2549,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.16666667
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 276d7e349d1d17b40bbc06ad929b164b, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: 8e9e0e5111c82cd449248710c84e5085, type: 2}
   m_BuildHeightMesh: 0
 --- !u!64 &365843083
 MeshCollider:
@@ -2938,7 +2919,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraTransform: {fileID: 330585546}
   rb: {fileID: 400410251}
-  walkSpeed: 15
+  walkSpeed: 50.6
   runSpeed: 30
   jumpForce: 3
   mouseSensitivity: 30
@@ -4201,8 +4182,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controlLuces: {fileID: 1634630990}
-  playerCamera: {fileID: 330585545}
-  distanciaInteraccion: 3
 --- !u!1 &585495478
 GameObject:
   m_ObjectHideFlags: 0
@@ -4401,8 +4380,6 @@ GameObject:
   - component: {fileID: 605421369}
   - component: {fileID: 605421373}
   - component: {fileID: 605421372}
-  - component: {fileID: 605421375}
-  - component: {fileID: 605421374}
   m_Layer: 0
   m_Name: Dinosaurio
   m_TagString: Untagged
@@ -4418,14 +4395,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 605421368}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -229.1, y: 32.7374, z: -17.21}
+  m_LocalRotation: {x: -0, y: 0.080340035, z: -0, w: 0.9967675}
+  m_LocalPosition: {x: -228.69731, y: 32.7374, z: -17.204548}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1833209288}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 9.216, z: 0}
 --- !u!114 &605421372
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4460,39 +4437,6 @@ MonoBehaviour:
   - {fileID: 1911893396}
   altura: 0.5
   tiempoAtrapado: 2
---- !u!114 &605421374
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 605421368}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a3d04aaf75eef014695f05b8039bf1c6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  tareasNecesarias:
-  - {fileID: 720375764}
-  - {fileID: 1047534940}
-  comprobarAlInicio: 1
-  controlAsesina: {fileID: 0}
-  controlDino: {fileID: 0}
---- !u!114 &605421375
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 605421368}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 335eace4f62817843bd7a6378d3cc2d0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  dinosaurio: {fileID: 605421368}
-  dinoCerebro: {fileID: 605421373}
-  tiempoAntesDeAparecer: 5
 --- !u!1 &616557223
 GameObject:
   m_ObjectHideFlags: 0
@@ -15299,6 +15243,69 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1538472008}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!1 &1989795330
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1989795332}
+  - component: {fileID: 1989795331}
+  - component: {fileID: 1989795333}
+  m_Layer: 0
+  m_Name: ControlDino
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1989795331
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1989795330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 335eace4f62817843bd7a6378d3cc2d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dinosaurio: {fileID: 605421368}
+  tiempoAntesDeAparecer: 5
+--- !u!4 &1989795332
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1989795330}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -223.36536, y: 38.51266, z: -12.32283}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1989795333
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1989795330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3d04aaf75eef014695f05b8039bf1c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tareasNecesarias:
+  - {fileID: 720375764}
+  - {fileID: 1047534940}
+  comprobarAlInicio: 1
 --- !u!1 &1990953928
 GameObject:
   m_ObjectHideFlags: 0
@@ -15417,6 +15424,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1997067798}
   - component: {fileID: 1997067797}
+  - component: {fileID: 1997067799}
   m_Layer: 0
   m_Name: ControlAsesina
   m_TagString: Untagged
@@ -15454,6 +15462,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1997067799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1997067796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3d04aaf75eef014695f05b8039bf1c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tareasNecesarias:
+  - {fileID: 720375764}
+  - {fileID: 1047534940}
+  comprobarAlInicio: 1
 --- !u!1 &2008011907
 GameObject:
   m_ObjectHideFlags: 0
@@ -16270,8 +16294,6 @@ SceneRoots:
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 400410256}
-  - {fileID: 605421369}
-  - {fileID: 209167815}
   - {fileID: 1434899135}
   - {fileID: 1793799275}
   - {fileID: 365843086}
@@ -16293,3 +16315,6 @@ SceneRoots:
   - {fileID: 752275821}
   - {fileID: 1634630991}
   - {fileID: 1997067798}
+  - {fileID: 1989795332}
+  - {fileID: 605421369}
+  - {fileID: 209167815}

@@ -1,48 +1,34 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
-public class InterruptorLuces : MonoBehaviour
+public class InterruptorLuces : MonoBehaviour, IInteractuable
 {
     [Header("Control de luces")]
     public ControlLuces controlLuces;
 
-    [Header("Interacción")]
-    public Camera playerCamera;
-    public float distanciaInteraccion = 3f;
+    private bool yaActivado = false;
 
-    private void Update()
+    public void Interactuar()
     {
-        if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+        // Si ya se usó una vez o no hay referencia, salir
+        if (yaActivado) return;
+        if (controlLuces == null)
         {
-            IntentarActivar();
-        }
-    }
-
-    private void IntentarActivar()
-    {
-        if (playerCamera == null)
+            Debug.LogWarning("ControlLuces no asignado en InterruptorLuces.");
             return;
-
-        Ray ray = new Ray(
-            playerCamera.transform.position,
-            playerCamera.transform.forward
-        );
-
-        if (Physics.Raycast(ray, out RaycastHit hit, distanciaInteraccion))
-        {
-            if (hit.collider.gameObject == gameObject)
-            {
-                ActivarInterruptor();
-            }
         }
-    }
 
-    private void ActivarInterruptor()
-    {
-        if (controlLuces != null)
+        // SOLO permitir encender si están apagadas
+        if (!controlLuces.LucesEncendidas)
         {
             controlLuces.EncenderLuces();
-            Debug.Log("🔘 Interruptor activado.");
+            Debug.Log("Luces ENCENDIDAS por el jugador.");
+
+            // Opcional: marcar como ya usado si quieres que solo funcione una vez
+            // yaActivado = true; 
+        }
+        else
+        {
+            Debug.Log("Las luces ya están encendidas. No puedes apagarlas.");
         }
     }
 }
