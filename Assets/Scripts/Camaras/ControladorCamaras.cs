@@ -7,6 +7,9 @@ public class ControladorCamaras : MonoBehaviour
     public GameObject textoInteraccion;
     public LayerMask capasInteraccion;
 
+
+    public PortapapelesUI portapapelesUI;
+
     void Update()
     {
         RaycastHit golpe;
