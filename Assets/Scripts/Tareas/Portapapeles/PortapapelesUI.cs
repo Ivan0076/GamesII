@@ -41,8 +41,7 @@ public class PortapapelesUI : MonoBehaviour
 
     void Update()
     {
-        // Detectar tecla E para soltar (usando Input System)
-        if (portapapelesRecogido && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+        if (portapapelesRecogido && Keyboard.current != null && Keyboard.current.qKey.wasPressedThisFrame)
         {
             SoltarPortapapeles();
         }

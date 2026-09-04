@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class PortapapelesObjeto : MonoBehaviour, IInteractuable
 {
@@ -13,7 +13,7 @@ public class PortapapelesObjeto : MonoBehaviour, IInteractuable
             uiPortapapeles = FindFirstObjectByType<PortapapelesUI>();
 
         if (uiPortapapeles == null)
-            Debug.LogWarning("No se encontró PortapapelesUI.");
+            Debug.LogWarning("No se encontrÃ³ PortapapelesUI.");
     }
 
     public void Interactuar()
@@ -30,10 +30,9 @@ public class PortapapelesObjeto : MonoBehaviour, IInteractuable
         if (uiPortapapeles != null)
             uiPortapapeles.MostrarPortapapeles(true);
 
-        Debug.Log("Portapapeles recogido. Presiona E para soltarlo.");
+        Debug.Log("Portapapeles recogido. Presiona Q para soltarlo.");
     }
 
-    // Método público para que lo llame PortapapelesUI
     public void Soltar()
     {
         if (!recogido) return;
