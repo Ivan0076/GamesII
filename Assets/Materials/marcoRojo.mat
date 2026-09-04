@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: "Ba\xF1os"
+  m_Name: marcoRojo
   m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
   m_Parent: {fileID: 2100000, guid: 4dfb72e29a18a5442b3597988913f249, type: 2}
   m_ModifiedSerializedProperties: 0
@@ -41,7 +41,7 @@ Material:
     m_Ints: []
     m_Floats: []
     m_Colors:
-    - _BaseColor: {r: 0, g: 0.66943145, b: 0.836478, a: 1}
-    - _Color: {r: 0, g: 0.66943145, b: 0.836478, a: 1}
+    - _BaseColor: {r: 0.2901961, g: 0.10980393, b: 0.09411766, a: 1}
+    - _Color: {r: 0.29019606, g: 0.10980389, b: 0.094117604, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
