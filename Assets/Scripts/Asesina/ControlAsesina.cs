@@ -9,9 +9,14 @@ public class ControlAsesina : MonoBehaviour
     [Header("Tiempo de aparición")]
     public float tiempoAntesDeAparecer = 10f;
 
+    [Header("Sonidos")]
+    public AudioSource audioSource;          // Fuente de audio (puede ser la misma que ControlLuces)
+    public AudioClip sonidoAparecer;         // Sonido al aparecer la asesina
+    public AudioClip sonidoDesaparecer;      // Sonido al desaparecer la asesina
+
     private float temporizador;
     private bool asesinaActiva = false;
-    private bool enemigoHabilitado = false; // ← Nuevo: controla si puede aparecer
+    private bool enemigoHabilitado = false;
 
     void Start()
     {
@@ -22,13 +27,11 @@ public class ControlAsesina : MonoBehaviour
             asesina.SetActive(false);
         }
 
-        // El enemigo se habilita mediante EnemigoRequisitos
         enemigoHabilitado = false;
     }
 
     void Update()
     {
-        // Solo procesar si el enemigo está habilitado
         if (!enemigoHabilitado) return;
 
         if (!asesinaActiva)
@@ -46,9 +49,6 @@ public class ControlAsesina : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Método llamado por EnemigoRequisitos cuando se cumplen los requisitos.
-    /// </summary>
     public void IniciarEnemigo()
     {
         enemigoHabilitado = true;
@@ -67,6 +67,12 @@ public class ControlAsesina : MonoBehaviour
         if (controlLuces != null)
         {
             controlLuces.ApagarLuces();
+        }
+
+        // Sonido de aparición
+        if (audioSource != null && sonidoAparecer != null)
+        {
+            audioSource.PlayOneShot(sonidoAparecer);
         }
 
         Debug.Log("La asesina apareció. ¡Las luces se apagaron!");
@@ -88,6 +94,12 @@ public class ControlAsesina : MonoBehaviour
         if (asesina != null)
         {
             asesina.SetActive(false);
+        }
+
+        // Sonido de desaparición
+        if (audioSource != null && sonidoDesaparecer != null)
+        {
+            audioSource.PlayOneShot(sonidoDesaparecer);
         }
 
         Debug.Log("Las luces volvieron. ¡La asesina desapareció!");

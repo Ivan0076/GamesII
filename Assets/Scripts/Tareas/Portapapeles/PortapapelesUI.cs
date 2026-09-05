@@ -5,11 +5,11 @@ using UnityEngine.InputSystem;
 public class PortapapelesUI : MonoBehaviour
 {
     [Header("Referencias UI (Canvas)")]
-    public GameObject panelTareas;          // Panel 2D (opcional, puedes mantenerlo)
+    public GameObject panelTareas;          // Panel 2D (opcional)
     public TextMeshProUGUI textoTareas2D;   // Texto 2D (opcional)
 
     [Header("Referencias UI 3D (World Space)")]
-    public TextMeshPro textoTareas3D;       // ← NUEVO: TextMeshPro en 3D
+    public TextMeshPro textoTareas3D;       // TextMeshPro en 3D
 
     [Header("Referencias al sistema de tareas")]
     public GestorTareas gestorTareas;
@@ -25,17 +25,29 @@ public class PortapapelesUI : MonoBehaviour
             gestorTareas = FindFirstObjectByType<GestorTareas>();
 
         if (gestorTareas != null)
+        {
+            // Suscribirse al evento de tarea completada
             gestorTareas.TareaCompletada += OnTareaCompletada;
-        else
-            Debug.LogWarning("No se encontró GestorTareas.");
 
-        // Desactivar el panel 2D al inicio (si existe)
+            // Suscribirse al evento de progreso de cada tarea
+            foreach (var t in gestorTareas.tareas)
+            {
+                if (t is TareaBase tb)
+                {
+                    tb.ProgresoActualizado += OnProgresoActualizado;
+                }
+            }
+        }
+        else
+        {
+            Debug.LogWarning("No se encontró GestorTareas.");
+        }
+
+        // Desactivar el panel 2D al inicio
         if (panelTareas != null)
             panelTareas.SetActive(false);
-        else
-            Debug.LogWarning("PanelTareas no asignado.");
 
-        // Actualizar el texto 3D al inicio (mostrar estado inicial)
+        // Actualizar el texto 3D al inicio
         ActualizarListaTareas();
     }
 
@@ -50,21 +62,48 @@ public class PortapapelesUI : MonoBehaviour
     void OnDestroy()
     {
         if (gestorTareas != null)
+        {
             gestorTareas.TareaCompletada -= OnTareaCompletada;
+
+            // Desuscribirse de los eventos de progreso
+            foreach (var t in gestorTareas.tareas)
+            {
+                if (t is TareaBase tb)
+                {
+                    tb.ProgresoActualizado -= OnProgresoActualizado;
+                }
+            }
+        }
     }
 
+    // Se llama cuando se completa una tarea
     void OnTareaCompletada(ITarea tarea)
     {
-        // Actualizar siempre, tanto si el panel 2D está visible como el texto 3D
+        // Actualizar siempre el texto 3D
         ActualizarListaTareas();
 
-        // Si el panel 2D está visible, también actualizar (opcional)
+        // Si el panel 2D está visible, actualizarlo también
         if (panelTareas != null && panelTareas.activeSelf)
         {
             ActualizarListaTareas2D();
         }
 
         Debug.Log($"UI actualizada: tarea '{tarea.nombreTarea}' completada");
+    }
+
+    // Se llama cuando el progreso de una tarea cambia (ej. recoger objeto)
+    void OnProgresoActualizado(TareaBase tarea)
+    {
+        // Actualizar siempre el texto 3D
+        ActualizarListaTareas();
+
+        // Si el panel 2D está visible, actualizarlo también
+        if (panelTareas != null && panelTareas.activeSelf)
+        {
+            ActualizarListaTareas2D();
+        }
+
+        Debug.Log($"Progreso actualizado: {tarea.nombreTarea} - {tarea.ObtenerProgreso()}");
     }
 
     /// <summary>
@@ -74,17 +113,7 @@ public class PortapapelesUI : MonoBehaviour
     {
         if (textoTareas3D == null || gestorTareas == null) return;
 
-        string texto = "TAREAS:\n";
-        texto += "---------------------------\n\n";
-        foreach (var tarea in gestorTareas.tareas)
-        {
-            if (tarea == null) continue;
-            string estado = tarea.EstaCompletada ? "[X]" : "[ ]";
-            texto += $"{estado} {tarea.nombreTarea}\n";
-        }
-
-        textoTareas3D.text = texto;
-        Debug.Log("Lista de tareas actualizada en 3D.");
+        textoTareas3D.text = ObtenerTextoListaTareas();
     }
 
     /// <summary>
@@ -96,19 +125,49 @@ public class PortapapelesUI : MonoBehaviour
 
         string texto = "LISTA DE TAREAS\n";
         texto += "---------------------------\n\n";
+        texto += "Presiona Q para soltar\n\n";
+        texto += ObtenerTextoListaTareas();
+        textoTareas2D.text = texto;
+    }
+
+    /// <summary>
+    /// Genera el texto común para 3D y 2D
+    /// </summary>
+    private string ObtenerTextoListaTareas()
+    {
+        string texto = "TAREAS:\n";
+        texto += "---------------------------\n\n";
+
         foreach (var tarea in gestorTareas.tareas)
         {
             if (tarea == null) continue;
-            string estado = tarea.EstaCompletada ? "[X]" : "[ ]";
+
+            // Obtener el progreso si existe
+            string progreso = (tarea as TareaBase)?.ObtenerProgreso() ?? "";
+            string estado;
+
+            if (tarea.EstaCompletada)
+            {
+                estado = "[X]";
+            }
+            else
+            {
+                estado = "[ ]";
+                // Si la tarea no está completada pero tiene progreso, lo mostramos
+                if (!string.IsNullOrEmpty(progreso))
+                {
+                    estado = $"{estado} ({progreso})";
+                }
+            }
+
             texto += $"{estado} {tarea.nombreTarea}\n";
         }
 
-        textoTareas2D.text = texto;
+        return texto;
     }
 
     public void MostrarPortapapeles(bool mostrar)
     {
-        // Solo controla el panel 2D (el texto 3D siempre está visible)
         if (panelTareas != null)
         {
             panelTareas.SetActive(mostrar);

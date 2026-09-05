@@ -3,7 +3,7 @@
 public class ObjetoRecogible : MonoBehaviour, IInteractuable
 {
     [Header("Referencia a la tarea")]
-    public RecogerObjetosPerdidos tarea;
+    public RecogerObjetoPerdidos tarea;
 
     [Header("Feedback visual (opcional)")]
     public GameObject efectoRecogida;
@@ -12,7 +12,7 @@ public class ObjetoRecogible : MonoBehaviour, IInteractuable
     private void Start()
     {
         if (tarea == null)
-            tarea = FindFirstObjectByType<RecogerObjetosPerdidos>();
+            tarea = FindFirstObjectByType<RecogerObjetoPerdidos>();
 
         if (tarea == null)
             Debug.LogWarning("No se encontró una tarea de RecogerObjetosPerdidos en la escena.");

@@ -12,10 +12,22 @@ public class TareaBase : MonoBehaviour, ITarea
     protected bool completada = false;
     private bool iniciada = false;
 
+    // Evento que se dispara cuando el progreso cambia
+    public event System.Action<TareaBase> ProgresoActualizado;
+
     // Propiedades públicas
     public string nombreTarea => _nombreTarea;
     public bool EstaCompletada => completada;
-    public bool EstaIniciada => iniciada;   // ← NUEVA
+    public bool EstaIniciada => iniciada;
+
+    // Método virtual para que las hijas devuelvan su progreso (ej. "3/5")
+    public virtual string ObtenerProgreso() => "";
+
+    // Método protegido para notificar cambios de progreso
+    protected void NotificarProgreso()
+    {
+        ProgresoActualizado?.Invoke(this);
+    }
 
     public virtual bool PuedeIniciarse()
     {
