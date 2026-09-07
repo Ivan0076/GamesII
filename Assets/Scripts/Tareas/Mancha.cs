@@ -1,8 +1,8 @@
 using UnityEngine;
 
-/// <summary>
+
 /// Componente para manchas de suciedad. Al interactuar, notifica a la tarea asignada.
-/// </summary>
+
 public class Mancha : MonoBehaviour, IInteractuable
 {
     [Header("Referencia a la tarea")]
@@ -29,9 +29,9 @@ public class Mancha : MonoBehaviour, IInteractuable
             Debug.LogWarning("No se encontró una tarea de LimpiarSala en la escena.");
     }
 
-    /// <summary>
+   
     /// Método llamado por el ControladorCamaras al presionar E mientras se mira esta mancha.
-    /// </summary>
+ 
     public void Interactuar()
     {
         // Verificar que la tarea exista y esté iniciada

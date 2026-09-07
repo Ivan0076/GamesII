@@ -95,9 +95,7 @@ public class DinoCerebro : MonoBehaviour
         // StartCoroutine(ReiniciarRuta());
     }
 
-    /// <summary>
     /// Cambia la pose usando el Animator.
-    /// </summary>
     private void CambiarPose(PuntosDino.TipoPunto tipo)
     {
         if (animator == null) return;
@@ -122,9 +120,7 @@ public class DinoCerebro : MonoBehaviour
         animator.SetInteger("EstadoPose", valorPose);
     }
 
-    /// <summary>
     /// Método llamado cuando el dinosaurio es atrapado.
-    /// </summary>
     public void Atrapar()
     {
         if (atrapado) return; // Evita llamadas múltiples
