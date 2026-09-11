@@ -1,45 +1,54 @@
 using UnityEngine;
+using UnityEngine.Video;
 
 /// Componente para proyectores. Al interactuar, notifica a la tarea asignada.
 public class Proyector : MonoBehaviour, IInteractuable
 {
     [Header("Referencia a la tarea")]
-    public ApagarProyectores tarea;         // Arrastrar desde el Inspector
+    public ApagarProyectores tarea;
 
     [Header("Feedback visual (opcional)")]
-    public GameObject efectoApagado;        // Partículas o efecto al apagar
-    public AudioClip sonidoApagado;         // Sonido al apagar
+    public GameObject efectoApagado;
+    public AudioClip sonidoApagado;
 
     [Header("Apariencia")]
-    public Material materialApagado;        // Material que se pone al apagar (opcional)
-    public GameObject luzProyector;         // La luz o emisor del proyector (opcional)
+    public Material materialApagado;
+    public GameObject luzProyector;
     private Renderer rend;
+
+    [Header("Video")]
+    public VideoPlayer videoPlayer;
+
+    [Header("Audio")]
+    public AudioSource audioProyector;
 
     private void Start()
     {
         rend = GetComponent<Renderer>();
 
-        // Buscar la tarea automáticamente si no se asignó
+        // Buscar la tarea automÃ¡ticamente si no se asignÃ³
         if (tarea == null)
             tarea = FindFirstObjectByType<ApagarProyectores>();
 
         if (tarea == null)
-            Debug.LogWarning("No se encontró una tarea de ApagarProyectores en la escena.");
+            Debug.LogWarning("No se encontrÃ³ una tarea de ApagarProyectores en la escena.");
     }
 
-    /// Método llamado por el ControladorCamaras al presionar E mientras se mira este proyector.
+    /// MÃ©todo llamado por el ControladorCamaras al presionar E mientras se mira este proyector.
     public void Interactuar()
     {
-        // Verificar que la tarea exista y esté iniciada
+        // Verificar que la tarea exista y estÃ© iniciada
         if (tarea == null) return;
+
         if (!tarea.EstaIniciada)
         {
-            Debug.Log("Aún no puedes apagar proyectores. Completa las tareas previas.");
+            Debug.Log("AÃºn no puedes apagar proyectores. Completa las tareas previas.");
             return;
         }
+
         if (tarea.EstaCompletada)
         {
-            Debug.Log("Esta tarea ya está completada.");
+            Debug.Log("Esta tarea ya estÃ¡ completada.");
             return;
         }
 
@@ -53,29 +62,36 @@ public class Proyector : MonoBehaviour, IInteractuable
         if (sonidoApagado != null)
             AudioSource.PlayClipAtPoint(sonidoApagado, transform.position);
 
-        // Cambiar apariencia (opcional)
+        // Cambiar apariencia
         if (rend != null && materialApagado != null)
         {
             rend.material = materialApagado;
         }
 
-        // Apagar la luz del proyector (si existe)
+        // Apagar la luz del proyector
         if (luzProyector != null)
         {
             luzProyector.SetActive(false);
         }
 
-        // Desactivar el proyector o su collider para que no se pueda volver a apagar
-        // O simplemente desactivar el collider
+        // Detener el video
+        if (videoPlayer != null)
+        {
+            videoPlayer.Stop();
+        }
+
+        // Detener audio
+        if (audioProyector != null)
+        {
+            audioProyector.Stop();
+        }
+
+        // Desactivar el collider para que no se pueda volver a apagar
         Collider col = GetComponent<Collider>();
-        if (col != null) col.enabled = false;
+
+        if (col != null)
+            col.enabled = false;
 
         Debug.Log($"Proyector '{gameObject.name}' apagado.");
     }
-
-    // --- Preparación para VR (comentado) ---
-    // public void OnSelectEntered(SelectEnterEventArgs args)
-    // {
-    //     Interactuar();
-    // }
 }

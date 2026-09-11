@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class ApagarProyectores : TareaBase
 {
-    [Header("Configuración de proyectores")]
+    [Header("Configuraciï¿½n de proyectores")]
     public int proyectoresNecesarios = 2;   // Cantidad de proyectores a apagar
     private int apagados = 0;
 
@@ -14,29 +14,29 @@ public class ApagarProyectores : TareaBase
     }
 
     /// <summary>
-    /// Método llamado desde cada proyector cuando se interactúa con él.
+    /// Mï¿½todo llamado desde cada proyector cuando se interactï¿½a con ï¿½l.
     /// </summary>
     public void ApagarProyector()
     {
-        // Evitar que se siga apagando si ya está completada o se alcanzó el límite
+        // Evitar que se siga apagando si ya estï¿½ completada o se alcanzï¿½ el lï¿½mite
         if (apagados >= proyectoresNecesarios || EstaCompletada) return;
 
         apagados++;
         Debug.Log($"Proyector apagado: {apagados}/{proyectoresNecesarios}");
 
-        // Si se alcanzó la cantidad necesaria, completar la tarea
+        // Si se alcanzï¿½ la cantidad necesaria, completar la tarea
         if (apagados >= proyectoresNecesarios)
         {
             CompletarTarea();
         }
     }
 
-    // --- Preparación para VR (comentado) ---
+    // --- Preparaciï¿½n para VR (comentado) ---
     // public void OnTriggerEnter(Collider other)
     // {
     //     if (other.CompareTag("Player") && !EstaCompletada)
     //     {
-    //         // Lógica para apagar por proximidad en VR
+    //         // Lï¿½gica para apagar por proximidad en VR
     //     }
     // }
 }
