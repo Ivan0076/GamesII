@@ -6,7 +6,8 @@ public class PuntosDino : MonoBehaviour
     {
         Inicio,
         Peligro,
-        Seguro
+        Seguro,
+        Final      
     }
 
     [Header("Configuración del punto")]

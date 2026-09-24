@@ -12,6 +12,9 @@ public class ControlDino : MonoBehaviour
     private bool dinoActivo = false;
     private bool enemigoHabilitado = false;
 
+    public AudioSource audioSource;
+    public AudioClip sonidoAparicion;
+
     void Start()
     {
         temporizador = tiempoAntesDeAparecer;
@@ -35,6 +38,8 @@ public class ControlDino : MonoBehaviour
             if (temporizador <= 0f)
             {
                 AparecerDino();
+                if (audioSource != null && sonidoAparicion != null)
+                    audioSource.PlayOneShot(sonidoAparicion);
             }
         }
     }
