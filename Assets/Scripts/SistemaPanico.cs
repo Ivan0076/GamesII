@@ -1,11 +1,15 @@
+using UnityEngine.SceneManagement;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class SistemaPanico : MonoBehaviour
 {
+
     [Header("Panico")]
     public float panico = 0f;
     public float panicoMaximo = 100f;
+    public TMP_Text textoPorcentaje;
 
     [Header("Jugador")]
     public Transform jugador;
@@ -59,10 +63,15 @@ public class SistemaPanico : MonoBehaviour
 
         barraPanico.fillAmount = panico / panicoMaximo;
 
+        if (textoPorcentaje != null)
+        {
+            textoPorcentaje.text = "Pánico: " + Mathf.RoundToInt(panico) + "%";
+        }
+
         barraPanico.color = Color.Lerp(
-            Color.green,
-            Color.red,
-            panico / panicoMaximo);
+        Color.green,
+        Color.red,
+        panico / panicoMaximo);
 
         if (panico >= panicoMaximo)
         {
@@ -77,5 +86,16 @@ public class SistemaPanico : MonoBehaviour
         panelGameOver.SetActive(true);
 
         Time.timeScale = 0f;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    public void VolverAlMenu()
+    {
+        Time.timeScale = 1f;
+
+
+        SceneManager.LoadScene("MenuPrincipal");
     }
 }
