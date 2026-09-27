@@ -7,8 +7,8 @@ public class DinoFaseDos : MonoBehaviour
     public Transform[] puntosSpawn;
 
     [Header("Movimiento")]
-    public float velocidad = 3.5f;
-    public float distanciaGameOver = 2f;
+    public float velocidad;
+    public float distanciaGameOver;
 
     [Header("Detección de mirada")]
     [Range(0.7f, 1f)] public float umbralMirada = 0.9f;
