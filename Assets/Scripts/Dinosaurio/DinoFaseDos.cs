@@ -194,6 +194,9 @@ public class DinoFaseDos : MonoBehaviour
         activo = false;
 
         Debug.Log("GAME OVER");
+        Time.timeScale = 0f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
         if (agente.enabled && agente.isOnNavMesh) agente.isStopped = true;
         if (animator != null) animator.speed = 0f;
         if (panelGameOver != null) panelGameOver.SetActive(true);
