@@ -37,7 +37,7 @@ public class ControladorCamaras : MonoBehaviour
             else
             {
                 // --- Nuevo: Interactuables genéricos ---
-                IInteractuable interactuable = obj.GetComponent<IInteractuable>();
+                IInteractuable interactuable = obj.GetComponentInParent<IInteractuable>();
                 if (interactuable != null)
                 {
                     textoInteraccion.SetActive(true);
