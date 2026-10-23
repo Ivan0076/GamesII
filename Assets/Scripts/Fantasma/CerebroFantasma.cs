@@ -161,25 +161,16 @@ public class CerebroFantasma : MonoBehaviour
         Debug.Log("Fantasma se movió a otra posición");
     }
 
-    
+
     void ActivarManos()
     {
-        if (jugador != null)
-        {
-            if (manoIzquierda != null)
-            {
-                manoIzquierda.SetActive(true);
-                manoIzquierda.transform.SetParent(jugador);
-                manoIzquierda.transform.localPosition = new Vector3(-0.4f, 0.2f, 1f);
-            }
-            if (manoDerecha != null)
-            {
-                manoDerecha.SetActive(true);
-                manoDerecha.transform.SetParent(jugador);
-                manoDerecha.transform.localPosition = new Vector3(0.4f, 0.2f, 1f);
-            }
-            Debug.Log("Manos aparecieron frente al jugador con delay");
-        }
+        if (manoIzquierda != null)
+            manoIzquierda.SetActive(true);
+
+        if (manoDerecha != null)
+            manoDerecha.SetActive(true);
+
+        Debug.Log("Manos activadas");
     }
 
 }
