@@ -7721,7 +7721,7 @@ Transform:
   m_GameObject: {fileID: 172508327}
   serializedVersion: 2
   m_LocalRotation: {x: -0.09115386, y: -0.00000029952224, z: -0.000000077125776, w: -0.99583685}
-  m_LocalPosition: {x: -3.7141016, y: 23.948887, z: 5.4041114}
+  m_LocalPosition: {x: -3.7141016, y: 23.66, z: 6.396}
   m_LocalScale: {x: 458.80515, y: 473.699, z: 609.67847}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7759,10 +7759,10 @@ Light:
   m_GameObject: {fileID: 172508327}
   m_Enabled: 1
   serializedVersion: 11
-  m_Type: 0
+  m_Type: 3
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 10000
-  m_Range: 38
+  m_Range: 10000
   m_SpotAngle: 38.626453
   m_InnerSpotAngle: 20
   m_CookieSize: 10
@@ -7802,7 +7802,7 @@ Light:
   m_RenderingLayerMask: 1
   m_Lightmapping: 2
   m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
+  m_AreaSize: {x: 2.7081647, y: 1.8945987}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
@@ -93463,7 +93463,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!64 &1141079136
 MeshCollider:
