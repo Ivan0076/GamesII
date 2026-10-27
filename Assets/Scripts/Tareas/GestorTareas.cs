@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GestorTareas : MonoBehaviour
 {
@@ -43,8 +44,12 @@ public class GestorTareas : MonoBehaviour
         if (tareasCompletadas >= tareas.Count)
         {
             Debug.Log("¡Todas las tareas completadas! La noche ha terminado.");
-            if (TodasLasTareasCompletadas != null)
-                TodasLasTareasCompletadas.Invoke();
+
+            GameManager.Instance.nocheActual++;
+
+            Debug.Log("Siguiente noche: " + GameManager.Instance.nocheActual);
+
+            UnityEngine.SceneManagement.SceneManager.LoadScene("TransicionNoche");
         }
     }
 }

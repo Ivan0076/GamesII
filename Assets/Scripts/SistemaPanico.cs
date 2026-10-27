@@ -6,6 +6,11 @@ using UnityEngine.UI;
 public class SistemaPanico : MonoBehaviour
 {
 
+    [Header("Activacion")]
+    public float tiempoActivacionPanico = 60f; // 1 minutos
+    private float tiempoTranscurrido = 0f;
+    private bool panicoActivo = false;
+
     [Header("Panico")]
     public float panico = 0f;
     public float panicoMaximo = 100f;
@@ -32,8 +37,27 @@ public class SistemaPanico : MonoBehaviour
 
     void Update()
     {
+
+        Debug.Log("Update funcionando");
+
         if (juegoTerminado)
             return;
+
+
+        tiempoTranscurrido += Time.deltaTime;
+
+        Debug.Log("Tiempo: " + tiempoTranscurrido);
+
+        if (!panicoActivo && tiempoTranscurrido >= tiempoActivacionPanico)
+        {
+            panicoActivo = true;
+            Debug.Log("Sistema de pánico ACTIVADO");
+        }
+
+        if (!panicoActivo)
+        {
+            return;
+        }
 
         bool monstruoCerca = false;
 
