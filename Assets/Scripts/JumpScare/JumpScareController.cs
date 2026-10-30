@@ -1,16 +1,18 @@
 ﻿using UnityEngine;
 using UnityEngine.Video;
 using System.Collections;
+using System.Collections.Generic; // Necesario para usar List
 
 public class JumpscareController : MonoBehaviour
 {
-    [Header("Configuración 2D")]
+    [Header("Configuración del Jumpscare")]
     public GameObject canvasJumpscare;
+    public VideoPlayer videoJumpscare;
     public Transform camaraJugador;
 
-    [Header("Video y Tiempos")]
-    public VideoPlayer videoJumpscare;
-    public float duracionJumpscare = 3f;
+    [Header("UI a Ocultar durante el susto")]
+    [Tooltip("Arrastra aquí el crosshair, panel de pausa, etc. Se apagarán y no volverán hasta reiniciar (o hasta que tú decidas).")]
+    public List<GameObject> panelesAOcultar = new List<GameObject>();
 
     [Header("Audio y Game Over")]
     public AudioSource audioSource;
@@ -19,6 +21,7 @@ public class JumpscareController : MonoBehaviour
     public GameObject pantallaGameOver;
 
     public GameObject modeloPerseguidor;
+    public float duracionJumpscare = 4f;
 
     private bool yaActivado = false;
 
@@ -26,9 +29,7 @@ public class JumpscareController : MonoBehaviour
     {
         if (canvasJumpscare != null) canvasJumpscare.SetActive(false);
         if (pantallaGameOver != null) pantallaGameOver.SetActive(false);
-
-        if (camaraJugador == null && Camera.main != null)
-            camaraJugador = Camera.main.transform;
+        if (camaraJugador == null && Camera.main != null) camaraJugador = Camera.main.transform;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -45,28 +46,26 @@ public class JumpscareController : MonoBehaviour
     {
         if (modeloPerseguidor != null) modeloPerseguidor.SetActive(false);
 
-        // 🔥 PAUSAR EL JUEGO (Detiene al jugador y a todos los enemigos)
+        // Pausar el juego
         Time.timeScale = 0f;
-        // Nota: Si usas XR Interaction Toolkit, esto también detendrá el movimiento.
+
+        // Ocultar selectivamente los paneles de la UI
+        foreach (GameObject panel in panelesAOcultar)
+        {
+            if (panel != null) panel.SetActive(false);
+        }
 
         if (audioSource != null && sonidoJumpscare != null)
             audioSource.PlayOneShot(sonidoJumpscare);
 
         if (canvasJumpscare != null && camaraJugador != null)
         {
-            // Lo activamos
             canvasJumpscare.SetActive(true);
 
-            // Lo emparentamos a la cámara (sin conservar la escala mundial)
-            canvasJumpscare.transform.SetParent(camaraJugador, false);
-
-            // Lo ponemos a 1 metro de la cara (evita el recorte de la cámara)
-            canvasJumpscare.transform.localPosition = new Vector3(0, 0, 1f);
-
-            // Lo rotamos para que mire al frente
-            canvasJumpscare.transform.localRotation = Quaternion.Euler(0, 0, 0);
-
-            // Forzamos una escala segura para VR
+            // Centrar perfectamente frente a la cámara
+            // Aleja el video 0.6 metros y lo baja un poquito (0.15 metros) para centrarlo en los ojos
+            canvasJumpscare.transform.position = camaraJugador.position + (camaraJugador.forward * 0.6f) + (Vector3.down * 0.15f);
+            canvasJumpscare.transform.rotation = camaraJugador.rotation;
             canvasJumpscare.transform.localScale = new Vector3(0.001f, 0.001f, 0.001f);
         }
 
@@ -80,7 +79,6 @@ public class JumpscareController : MonoBehaviour
 
     private IEnumerator SecuenciaGameOver()
     {
-        // 🔥 Usamos Realtime porque el juego está pausado (timeScale = 0)
         yield return new WaitForSecondsRealtime(duracionJumpscare);
 
         if (videoJumpscare != null) videoJumpscare.Stop();
@@ -92,7 +90,6 @@ public class JumpscareController : MonoBehaviour
         if (audioSource != null && sonidoGameOver != null)
             audioSource.PlayOneShot(sonidoGameOver);
 
-        // El juego se queda pausado en el Game Over
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
