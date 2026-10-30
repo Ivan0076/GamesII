@@ -8,7 +8,6 @@ public class DinoFaseDos : MonoBehaviour
 
     [Header("Movimiento")]
     public float velocidad;
-    public float distanciaGameOver;
 
     [Header("Detección de mirada")]
     [Range(0.7f, 1f)] public float umbralMirada = 0.9f;
@@ -16,9 +15,6 @@ public class DinoFaseDos : MonoBehaviour
 
     [Header("Animación")]
     public string triggerIniciarFase2 = "IniciarFase2";   // Trigger exacto del Animator
-
-    [Header("Game Over")]
-    public GameObject panelGameOver;
 
     [Header("Referencias")]
     public Transform jugador;
@@ -101,8 +97,6 @@ public class DinoFaseDos : MonoBehaviour
             if (mostrarLogs) Debug.Log("Play('Caminar') llamado como fallback.");
         }
 
-        if (panelGameOver != null) panelGameOver.SetActive(false);
-
         if (mostrarLogs) Debug.Log("Fase 2 iniciada.");
     }
 
@@ -139,10 +133,6 @@ public class DinoFaseDos : MonoBehaviour
                           $"pathPending={agente.pathPending}");
             }
         }
-
-        // 3. Game Over
-        if (Vector3.Distance(transform.position, jugador.position) <= distanciaGameOver)
-            GameOver();
     }
 
     // ====================================================================
@@ -186,19 +176,5 @@ public class DinoFaseDos : MonoBehaviour
         }
 
         return true;
-    }
-
-    private void GameOver()
-    {
-        if (!activo) return;
-        activo = false;
-
-        Debug.Log("GAME OVER");
-        Time.timeScale = 0f;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-        if (agente.enabled && agente.isOnNavMesh) agente.isStopped = true;
-        if (animator != null) animator.speed = 0f;
-        if (panelGameOver != null) panelGameOver.SetActive(true);
     }
 }

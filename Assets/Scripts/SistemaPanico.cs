@@ -38,15 +38,11 @@ public class SistemaPanico : MonoBehaviour
     void Update()
     {
 
-        Debug.Log("Update funcionando");
-
         if (juegoTerminado)
             return;
 
 
         tiempoTranscurrido += Time.deltaTime;
-
-        Debug.Log("Tiempo: " + tiempoTranscurrido);
 
         if (!panicoActivo && tiempoTranscurrido >= tiempoActivacionPanico)
         {
