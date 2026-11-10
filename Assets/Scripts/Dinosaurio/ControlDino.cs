@@ -1,63 +1,47 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class ControlDino : MonoBehaviour
 {
     [Header("Referencias")]
-    public GameObject dinosaurio;               // El GameObject del dinosaurio (con DinoCerebro)
+    public GameObject dinosaurio;
+    public DinoCerebro cerebro;
+    public DinoFaseDos faseDos;
 
-    [Header("Tiempo de aparici�n")]
-    public float tiempoAntesDeAparecer = 15f;
-
-    private float temporizador;
-    private bool dinoActivo = false;
-    private bool enemigoHabilitado = false;
-
+    [Header("Audio")]
     public AudioSource audioSource;
     public AudioClip sonidoAparicion;
 
+    // Evento para avisar al Director que el Dino se fue
+    public System.Action OnDinoRetirado;
+
     void Start()
     {
-        temporizador = tiempoAntesDeAparecer;
+        if (dinosaurio != null) dinosaurio.SetActive(false);
 
-        if (dinosaurio != null)
-        {
-            dinosaurio.SetActive(false);
-        }
-
-        enemigoHabilitado = false;
+        // Nos suscribimos a los eventos del Dino
+        if (cerebro != null) cerebro.OnDinoAtrapado += RetirarDino;
+        if (faseDos != null) faseDos.OnDinoSeRinde += RetirarDino;
     }
 
-    void Update()
+    // Método que llamará el Director
+    public void Aparecer()
     {
-        if (!enemigoHabilitado) return;
-
-        if (!dinoActivo)
-        {
-            temporizador -= Time.deltaTime;
-
-            if (temporizador <= 0f)
-            {
-                AparecerDino();
-                if (audioSource != null && sonidoAparicion != null)
-                    audioSource.PlayOneShot(sonidoAparicion);
-            }
-        }
-    }
-
-    public void IniciarEnemigo()
-    {
-        enemigoHabilitado = true;
-        Debug.Log("Dinosaurio habilitado (requisitos cumplidos). Iniciando temporizador...");
-    }
-
-    void AparecerDino()
-    {
-        dinoActivo = true;
-
         if (dinosaurio != null)
         {
             dinosaurio.SetActive(true);
-            Debug.Log("�El dinosaurio ha aparecido!");
+            if (audioSource != null && sonidoAparicion != null)
+                audioSource.PlayOneShot(sonidoAparicion);
+            Debug.Log("¡El dinosaurio ha aparecido (llamado por el Director)!");
         }
+    }
+
+    // Este método se ejecuta si lo atrapan o si se rinde
+    private void RetirarDino()
+    {
+        if (dinosaurio != null) dinosaurio.SetActive(false);
+
+        // Avisamos al Director que el dino ya no está en juego
+        OnDinoRetirado?.Invoke();
+        Debug.Log("El dinosaurio se ha retirado. Slot liberado.");
     }
 }

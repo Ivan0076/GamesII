@@ -3,18 +3,20 @@ using UnityEngine.AI;
 
 public class DinoFaseDos : MonoBehaviour
 {
-    [Header("Spawn aleatorio")]
-    public Transform[] puntosSpawn;
-
     [Header("Movimiento")]
     public float velocidad;
 
     [Header("Detección de mirada")]
     [Range(0.7f, 1f)] public float umbralMirada = 0.9f;
-    public LayerMask capasObstaculo;   // ← DEBE incluir capa del dino + paredes
+    public LayerMask capasObstaculo;
 
     [Header("Animación")]
-    public string triggerIniciarFase2 = "IniciarFase2";   // Trigger exacto del Animator
+    public string triggerIniciarFase2 = "IniciarFase2";
+
+    [Header("Rendición (Tiempo límite)")]
+    public float tiempoAntesDeRendirse = 45f;
+    public AudioSource audioSource;
+    public AudioClip sonidoRendicion;
 
     [Header("Referencias")]
     public Transform jugador;
@@ -23,15 +25,22 @@ public class DinoFaseDos : MonoBehaviour
     [Header("Debug")]
     public bool mostrarLogs = true;
 
+    public System.Action OnDinoSeRinde;
+
     private NavMeshAgent agente;
     private Animator animator;
+    private GestorSpawns gestorSpawns; // Referencia interna
     private bool activo = false;
     private bool mirando = false;
+    private float tiempoEnFase2 = 0f;
 
     void Awake()
     {
         agente = GetComponent<NavMeshAgent>();
         animator = GetComponentInChildren<Animator>();
+
+        // Buscamos el GestorSpawns en el mismo GameObject
+        gestorSpawns = GetComponent<GestorSpawns>();
 
         if (jugador == null)
         {
@@ -44,60 +53,43 @@ public class DinoFaseDos : MonoBehaviour
         if (camaraJugador == null)
             camaraJugador = Camera.main;
 
-        if (mostrarLogs)
-            Debug.Log($"Fase2 → agente={(agente != null)}, anim={(animator != null)}, " +
-                      $"jugador={(jugador != null)}, cam={(camaraJugador != null)}");
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
     }
 
     public void IniciarFase()
     {
         activo = true;
+        tiempoEnFase2 = 0f;
 
-        if (agente == null || jugador == null || camaraJugador == null)
-        {
-            Debug.LogError("Faltan referencias en DinoFaseDos.");
-            return;
-        }
+        if (agente == null || jugador == null || camaraJugador == null) return;
 
-        // Spawn aleatorio
+        // Usamos el GestorSpawns interno
         Vector3 pos = transform.position;
-        if (puntosSpawn != null && puntosSpawn.Length > 0)
-            pos = puntosSpawn[Random.Range(0, puntosSpawn.Length)].position;
+        if (gestorSpawns != null)
+        {
+            pos = gestorSpawns.ObtenerPuntoAleatorio();
+        }
 
         agente.enabled = true;
         agente.speed = velocidad;
         agente.isStopped = false;
 
-        // Colocar sobre NavMesh
         if (NavMesh.SamplePosition(pos, out NavMeshHit hit, 20f, NavMesh.AllAreas))
         {
             agente.Warp(hit.position);
             if (mostrarLogs) Debug.Log($"Spawn en {hit.position}");
         }
-        else
-        {
-            Debug.LogError($"No hay NavMesh cerca de {pos}. Rebake.");
-            activo = false;
-            return;
-        }
 
-        // ANIMACIÓN: activar trigger "IniciarFase2" (así se cambia al estado Caminar)
         if (animator != null && !string.IsNullOrEmpty(triggerIniciarFase2))
         {
             animator.SetTrigger(triggerIniciarFase2);
             animator.speed = 1f;
-            if (mostrarLogs)
-                Debug.Log($"Trigger '{triggerIniciarFase2}' activado.");
         }
         else if (animator != null)
         {
-            // Fallback: si no hay trigger, intentar Play directo
             animator.Play("Caminar", 0, 0f);
             animator.speed = 1f;
-            if (mostrarLogs) Debug.Log("Play('Caminar') llamado como fallback.");
         }
-
-        if (mostrarLogs) Debug.Log("Fase 2 iniciada.");
     }
 
     void Update()
@@ -106,15 +98,16 @@ public class DinoFaseDos : MonoBehaviour
         if (agente == null || jugador == null || camaraJugador == null) return;
         if (!agente.enabled || !agente.isOnNavMesh) return;
 
-        // 1. ¿El jugador lo mira?
+        tiempoEnFase2 += Time.deltaTime;
+        if (tiempoEnFase2 >= tiempoAntesDeRendirse)
+        {
+            Rendirse();
+            return;
+        }
+
         bool mirandoAhora = EstaSiendoMirado();
-
-        if (mirandoAhora != mirando && mostrarLogs)
-            Debug.Log(mirandoAhora ? "Mirando → pausa" : " No mira → persigue");
-
         mirando = mirandoAhora;
 
-        // 2. Pausar o perseguir
         if (mirando)
         {
             agente.isStopped = true;
@@ -125,19 +118,17 @@ public class DinoFaseDos : MonoBehaviour
             agente.isStopped = false;
             agente.SetDestination(jugador.position);
             if (animator != null) animator.speed = 1f;
-
-            if (mostrarLogs && Time.frameCount % 90 == 0)
-            {
-                Debug.Log($"dist={Vector3.Distance(transform.position, jugador.position):F2} " +
-                          $"vel={agente.velocity.magnitude:F2} " +
-                          $"pathPending={agente.pathPending}");
-            }
         }
     }
 
-    // ====================================================================
-    // DETECCIÓN DE MIRADA (con verificación completa)
-    // ====================================================================
+    private void Rendirse()
+    {
+        activo = false;
+        if (agente != null) agente.isStopped = true;
+        if (audioSource != null && sonidoRendicion != null) audioSource.PlayOneShot(sonidoRendicion);
+        OnDinoSeRinde?.Invoke();
+        gameObject.SetActive(false);
+    }
 
     private bool EstaSiendoMirado()
     {
@@ -146,35 +137,14 @@ public class DinoFaseDos : MonoBehaviour
         Vector3 dir = (posDino - posCam).normalized;
         float dist = Vector3.Distance(posCam, posDino);
 
-        // 1. ¿Está dentro del cono?
         float dot = Vector3.Dot(camaraJugador.transform.forward, dir);
-        if (dot < umbralMirada)
-            return false;
+        if (dot < umbralMirada) return false;
 
-        // 2. ¿Hay algo entre la cámara y el dino?
-        if (Physics.Raycast(posCam, dir, out RaycastHit hit, dist,
-                            capasObstaculo, QueryTriggerInteraction.Ignore))
+        if (Physics.Raycast(posCam, dir, out RaycastHit hit, dist, capasObstaculo, QueryTriggerInteraction.Ignore))
         {
-            bool esElDino = hit.collider.gameObject == gameObject ||
-                            hit.collider.transform.IsChildOf(transform);
-
-            if (mostrarLogs && Time.frameCount % 30 == 0)
-                Debug.Log($"Raycast: '{hit.collider.gameObject.name}' " +
-                          $"(capa: {LayerMask.LayerToName(hit.collider.gameObject.layer)}) " +
-                          $"esDino={esElDino}");
-
-            // Si golpeó algo que NO es el dino → bloqueado por pared/obstáculo
-            if (!esElDino)
-                return false;
+            bool esElDino = hit.collider.gameObject == gameObject || hit.collider.transform.IsChildOf(transform);
+            if (!esElDino) return false;
         }
-        else
-        {
-            // El raycast NO golpeó nada:
-            // Significa que ni el dino ni las paredes están en capasObstaculo
-            if (mostrarLogs && Time.frameCount % 120 == 0)
-                Debug.LogWarning("Raycast sin impacto. Añade la capa del dino Y de las paredes a capasObstaculo.");
-        }
-
         return true;
     }
 }

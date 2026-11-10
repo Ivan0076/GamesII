@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
 
-public enum EstadosAsesina { 
+public enum EstadosAsesina
+{
     esta_atacando,
     esta_persiguiendo,
 }
 
 public class AsesinaCerebro : MonoBehaviour
 {
-    // ---- Referencias ----
     [Header("Referencias")]
     public Transform jugador;
     public NavMeshAgent agente;
@@ -30,22 +30,20 @@ public class AsesinaCerebro : MonoBehaviour
     public float velocidadPatrulla = 2.5f;
     public float velocidadPersecucion = 5f;
 
-    // ---- Estado actual ----
     private enum Estado { Patrulla, Persecucion }
     private Estado estadoActual = Estado.Patrulla;
 
-    // ---- Variables internas ----
     private int indicePatrulla = 0;
     private float temporizadorEspera = 0f;
     private bool esperando = false;
     private bool jugadorVisible = false;
     private float temporizadorPerdida = 0f;
 
-    // ---- Colores para cada estado ----
     private Color colorPatrulla = Color.yellow;
     private Color colorPersecucion = Color.red;
 
-    void Start()
+    // Cambiamos Start por OnEnable para que se reinicie cada vez que el Director la invoque
+    void OnEnable()
     {
         if (agente == null) agente = GetComponent<NavMeshAgent>();
         if (jugador == null) jugador = GameObject.FindGameObjectWithTag("Player").transform;
@@ -53,12 +51,19 @@ public class AsesinaCerebro : MonoBehaviour
         if (rendererCuerpo == null)
             rendererCuerpo = GetComponentInChildren<Renderer>();
 
-        if (puntosPatrulla.Length > 0)
+        // Reiniciamos variables de estado
+        estadoActual = Estado.Patrulla;
+        esperando = false;
+        temporizadorEspera = 0f;
+        temporizadorPerdida = 0f;
+        indicePatrulla = 0;
+
+        if (puntosPatrulla.Length > 0 && agente != null)
         {
+            agente.isStopped = false;
             agente.SetDestination(puntosPatrulla[0].position);
         }
 
-        // Aplicar la configuración inicial (color y velocidad)
         ActualizarApariencia();
     }
 
@@ -66,12 +71,10 @@ public class AsesinaCerebro : MonoBehaviour
     {
         jugadorVisible = IsPlayerVisible();
 
-        // Transiciones de estado
         if (estadoActual == Estado.Patrulla && jugadorVisible)
         {
             estadoActual = Estado.Persecucion;
             temporizadorPerdida = 0f;
-            Debug.Log("¡Jugador avistado! Persiguiendo.");
             ActualizarApariencia();
         }
         else if (estadoActual == Estado.Persecucion && !jugadorVisible)
@@ -81,7 +84,6 @@ public class AsesinaCerebro : MonoBehaviour
             if (temporizadorPerdida >= tiempoAntesDeOlvidar)
             {
                 estadoActual = Estado.Patrulla;
-                Debug.Log("Olvidé al jugador. Vuelvo a patrullar.");
 
                 if (puntosPatrulla.Length > 0)
                 {
@@ -100,7 +102,6 @@ public class AsesinaCerebro : MonoBehaviour
                 temporizadorPerdida = 0f;
         }
 
-        // Ejecutar el estado actual
         switch (estadoActual)
         {
             case Estado.Patrulla:
@@ -112,7 +113,6 @@ public class AsesinaCerebro : MonoBehaviour
         }
     }
 
-    // -------------------- RAYCAST --------------------
     bool IsPlayerVisible()
     {
         if (jugador == null) return false;
@@ -127,18 +127,15 @@ public class AsesinaCerebro : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(origen, direccion, out hit, radioVision, mascaraDeteccion))
         {
-            if (hit.collider.CompareTag("Player"))
-                return true;
-            else
-                return false;
+            if (hit.collider.CompareTag("Player")) return true;
+            else return false;
         }
         return false;
     }
 
-    // -------------------- PATRULLA --------------------
     void EstadoPatrulla()
     {
-        if (puntosPatrulla.Length == 0) return;
+        if (puntosPatrulla.Length == 0 || agente == null) return;
 
         if (!agente.pathPending && agente.remainingDistance < 0.5f && !esperando)
         {
@@ -160,39 +157,34 @@ public class AsesinaCerebro : MonoBehaviour
         }
     }
 
-    // -------------------- PERSECUCIÓN --------------------
     void EstadoPersecucion()
     {
-        agente.SetDestination(jugador.position);
-        if (agente.isStopped) agente.isStopped = false;
+        if (agente != null)
+        {
+            agente.SetDestination(jugador.position);
+            if (agente.isStopped) agente.isStopped = false;
+        }
     }
 
     void ActualizarApariencia()
     {
-        // 1. Cambiar color
         if (rendererCuerpo != null)
         {
             Color nuevoColor = (estadoActual == Estado.Patrulla) ? colorPatrulla : colorPersecucion;
             rendererCuerpo.material.color = nuevoColor;
         }
 
-        // 2. Cambiar velocidad del agente
         if (agente != null)
         {
             agente.speed = (estadoActual == Estado.Patrulla) ? velocidadPatrulla : velocidadPersecucion;
         }
-
     }
-
-    // -------------------- PROPIEDAD PÚBLICA PARA CONSULTAR EL ESTADO --------------------
-    /// Devuelve true si la asesina está en modo persecución.
 
     public bool EstaPersiguiendo
     {
         get { return estadoActual == Estado.Persecucion; }
     }
 
-    // -------------------- GIZMOS --------------------
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;

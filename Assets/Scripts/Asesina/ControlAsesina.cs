@@ -1,86 +1,74 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public class ControlAsesina : MonoBehaviour
 {
     [Header("Referencias")]
-    public GameObject asesina;
+    public GameObject asesina; // Arrastra el GameObject "Asesina" aqu�
     public ControlLuces controlLuces;
 
-    [Header("Tiempo de aparición")]
-    public float tiempoAntesDeAparecer = 10f;
-
     [Header("Sonidos")]
-    public AudioSource audioSource;          // Fuente de audio (puede ser la misma que ControlLuces)
-    public AudioClip sonidoAparecer;         // Sonido al aparecer la asesina
-    public AudioClip sonidoDesaparecer;      // Sonido al desaparecer la asesina
+    public AudioSource audioSource;
+    public AudioClip sonidoAparecer;
+    public AudioClip sonidoDesaparecer;
 
-    private float temporizador;
+    public System.Action OnAsesinaRetirada;
     private bool asesinaActiva = false;
-    private bool enemigoHabilitado = false;
+    private NavMeshAgent agenteAsesina;
+    private GestorSpawns gestorSpawns;
 
     void Start()
     {
-        temporizador = tiempoAntesDeAparecer;
-
         if (asesina != null)
         {
             asesina.SetActive(false);
-        }
 
-        enemigoHabilitado = false;
-    }
+            // Buscamos el agente y el gestor de spawns DENTRO del GameObject de la asesina
+            agenteAsesina = asesina.GetComponent<NavMeshAgent>();
+            gestorSpawns = asesina.GetComponent<GestorSpawns>();
 
-    void Update()
-    {
-        if (!enemigoHabilitado) return;
-
-        if (!asesinaActiva)
-        {
-            temporizador -= Time.deltaTime;
-
-            if (temporizador <= 0f)
-            {
-                AparecerAsesina();
-            }
-        }
-        else
-        {
-            ComprobarLuces();
+            if (agenteAsesina == null)
+                Debug.LogError("No se encontr� NavMeshAgent en el objeto Asesina.");
+            if (gestorSpawns == null)
+                Debug.LogError("No se encontr� GestorSpawns en el objeto Asesina.");
         }
     }
 
-    public void IniciarEnemigo()
+    public void Aparecer()
     {
-        enemigoHabilitado = true;
-        Debug.Log("Asesina habilitada (requisitos cumplidos). Iniciando temporizador...");
-    }
-
-    void AparecerAsesina()
-    {
+        if (asesinaActiva) return;
         asesinaActiva = true;
 
+        // 1. Activamos la asesina primero
         if (asesina != null)
         {
             asesina.SetActive(true);
         }
 
-        if (controlLuces != null)
+        // 2. Teletransportamos usando el GestorSpawns de la asesina
+        if (gestorSpawns != null && agenteAsesina != null)
         {
-            controlLuces.ApagarLuces();
+            Vector3 puntoAleatorio = gestorSpawns.ObtenerPuntoAleatorio();
+
+            if (NavMesh.SamplePosition(puntoAleatorio, out NavMeshHit hit, 20f, NavMesh.AllAreas))
+            {
+                // Apagamos el agente, movemos el Transform y lo volvemos a encender
+                agenteAsesina.enabled = false;
+                asesina.transform.position = hit.position;
+                agenteAsesina.enabled = true;
+                agenteAsesina.Warp(hit.position);
+
+                Debug.Log("Asesina teletransportada a: " + hit.position);
+            }
         }
 
-        // Sonido de aparición
-        if (audioSource != null && sonidoAparecer != null)
-        {
-            audioSource.PlayOneShot(sonidoAparecer);
-        }
-
-        Debug.Log("La asesina apareció. ¡Las luces se apagaron!");
+        if (controlLuces != null) controlLuces.ApagarLuces();
+        if (audioSource != null && sonidoAparecer != null) audioSource.PlayOneShot(sonidoAparecer);
     }
 
-    void ComprobarLuces()
+    void Update()
     {
-        if (controlLuces != null && controlLuces.LucesEncendidas)
+        if (asesinaActiva && controlLuces != null && controlLuces.LucesEncendidas)
         {
             DesaparecerAsesina();
         }
@@ -88,20 +76,12 @@ public class ControlAsesina : MonoBehaviour
 
     public void DesaparecerAsesina()
     {
+        if (!asesinaActiva) return;
+
         asesinaActiva = false;
-        temporizador = tiempoAntesDeAparecer;
+        if (asesina != null) asesina.SetActive(false);
+        if (audioSource != null && sonidoDesaparecer != null) audioSource.PlayOneShot(sonidoDesaparecer);
 
-        if (asesina != null)
-        {
-            asesina.SetActive(false);
-        }
-
-        // Sonido de desaparición
-        if (audioSource != null && sonidoDesaparecer != null)
-        {
-            audioSource.PlayOneShot(sonidoDesaparecer);
-        }
-
-        Debug.Log("Las luces volvieron. ¡La asesina desapareció!");
+        OnAsesinaRetirada?.Invoke();
     }
 }

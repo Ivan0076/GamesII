@@ -19,7 +19,9 @@ public class DinoCerebro : MonoBehaviour
     public AudioSource audioSource;
     public AudioClip sonidoJumpscare;
     public float duracionJumpscare = 2f;
-  
+
+    // EVENTOS para el ControlDino
+    public System.Action OnDinoAtrapado;
 
     private Animator animator;
     private int puntoActual = 0;
@@ -34,39 +36,23 @@ public class DinoCerebro : MonoBehaviour
     {
         get
         {
-            if (puntos == null || puntos.Length == 0)
-                return PuntosDino.TipoPunto.Inicio;
+            if (puntos == null || puntos.Length == 0) return PuntosDino.TipoPunto.Inicio;
             return puntos[puntoActual].tipo;
         }
     }
 
-    // ====================================================================
-    // ACTIVAR / DESACTIVAR
-    // ====================================================================
-
     private void OnEnable()
     {
-        // Referencias
-        if (animator == null)
-            animator = GetComponentInChildren<Animator>();
-        if (audioSource == null)
-            audioSource = GetComponent<AudioSource>();
+        if (animator == null) animator = GetComponentInChildren<Animator>();
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
 
-        if (puntos == null || puntos.Length == 0)
-        {
-            Debug.LogWarning("El dinosaurio no tiene puntos asignados.");
-            return;
-        }
+        if (puntos == null || puntos.Length == 0) return;
 
-        // Reset estado y arrancar ruta
         atrapado = false;
         puntoActual = 0;
 
-        if (rutinaActual != null)
-            StopCoroutine(rutinaActual);
-
+        if (rutinaActual != null) StopCoroutine(rutinaActual);
         rutinaActual = StartCoroutine(RecorrerRuta());
-        Debug.Log("DinoCerebro activado. Iniciando ruta.");
     }
 
     private void OnDisable()
@@ -78,10 +64,6 @@ public class DinoCerebro : MonoBehaviour
         }
     }
 
-    // ====================================================================
-    // RECORRIDO
-    // ====================================================================
-
     private IEnumerator RecorrerRuta()
     {
         for (puntoActual = 0; puntoActual < puntos.Length; puntoActual++)
@@ -90,7 +72,6 @@ public class DinoCerebro : MonoBehaviour
 
             PuntosDino punto = puntos[puntoActual];
 
-            // Punto final → jumpscare y pasar a fase 2
             if (punto.tipo == PuntosDino.TipoPunto.Final)
             {
                 yield return StartCoroutine(SecuenciaFinal());
@@ -103,8 +84,6 @@ public class DinoCerebro : MonoBehaviour
             pos.y += altura;
             transform.position = pos;
 
-            Debug.Log($"Dino en punto {puntoActual} - Tipo: {punto.tipo}");
-
             float t = 0f;
             while (t < punto.tiempoEspera)
             {
@@ -113,42 +92,22 @@ public class DinoCerebro : MonoBehaviour
                 t += Time.deltaTime;
             }
         }
-
-        Debug.Log("¡El dinosaurio terminó su recorrido!");
     }
-
-    // ====================================================================
-    // SECUENCIA FINAL → FASE 2
-    // ====================================================================
 
     private IEnumerator SecuenciaFinal()
     {
-        Debug.Log("Dino llegó al FINAL!");
-
-        if (audioSource != null && sonidoJumpscare != null)
-            audioSource.PlayOneShot(sonidoJumpscare);
-
+        if (audioSource != null && sonidoJumpscare != null) audioSource.PlayOneShot(sonidoJumpscare);
         yield return new WaitForSeconds(duracionJumpscare);
 
-        // Desactivar fase 1
         gameObject.SetActive(false);
 
-        // Activar fase 2
         if (dinosaurioFase2 != null)
         {
             dinosaurioFase2.SetActive(true);
             DinoFaseDos fase2 = dinosaurioFase2.GetComponent<DinoFaseDos>();
             if (fase2 != null) fase2.IniciarFase();
         }
-        else
-        {
-            Debug.LogError("No se asignó 'dinosaurioFase2' en DinoCerebro.");
-        }
     }
-
-    // ====================================================================
-    // POSES
-    // ====================================================================
 
     private void CambiarPose(PuntosDino.TipoPunto tipo)
     {
@@ -157,26 +116,17 @@ public class DinoCerebro : MonoBehaviour
         animator.SetInteger("EstadoPose", valor);
     }
 
-    // ====================================================================
-    // ATRAPAR
-    // ====================================================================
-
     public void Atrapar()
     {
         if (atrapado) return;
         atrapado = true;
 
-        Debug.Log("¡Dino atrapado! Desaparecerá en unos segundos...");
+        // Avisamos al ControlDino que fuimos atrapados
+        OnDinoAtrapado?.Invoke();
 
-        if (animator != null)
-            animator.SetInteger("EstadoPose", POSE_ATRAPADO);
+        if (animator != null) animator.SetInteger("EstadoPose", POSE_ATRAPADO);
 
-        if (rutinaActual != null)
-        {
-            StopCoroutine(rutinaActual);
-            rutinaActual = null;
-        }
-
+        if (rutinaActual != null) StopCoroutine(rutinaActual);
         StartCoroutine(DesaparecerTrasAtrapado());
     }
 
@@ -184,6 +134,5 @@ public class DinoCerebro : MonoBehaviour
     {
         yield return new WaitForSeconds(tiempoAntesDeDesaparecer);
         gameObject.SetActive(false);
-        Debug.Log("Dino fase 1 desapareció.");
     }
 }
