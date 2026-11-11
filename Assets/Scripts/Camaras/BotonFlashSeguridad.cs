@@ -4,7 +4,10 @@ using UnityEngine;
 public class BotonFlashSeguridad : MonoBehaviour, IInteractuable
 {
     [Header("Sistema de cámaras (arrastra cualquiera de los dos)")]
-    public SistemaCamaras sistemaCamaras;   // Arrastra el GameObject con SistemaCamaras (botón siguiente o anterior)
+    public SistemaCamaras sistemaCamaras;   // Arrastra el GameObject con SistemaCamaras
+
+    [Header("Dino (para verificar que esté en Fase 1)")]
+    public ControlDino controlDino;         // Arrastra el GameObject con ControlDino
 
     [Header("Cámaras permitidas (índices en la lista)")]
     public List<int> indicesPermitidos = new List<int> { 0, 1 }; // Cámara 1 y 2
@@ -22,6 +25,15 @@ public class BotonFlashSeguridad : MonoBehaviour, IInteractuable
             return;
         }
 
+        // --- NUEVO: Verificar que la Fase 1 del dino esté activa ---
+        if (!Fase1DinoActiva())
+        {
+            Debug.Log("Flash bloqueado: el dinosaurio no está activo en Fase 1.");
+            if (audioSource != null && sonidoError != null)
+                audioSource.PlayOneShot(sonidoError);
+            return;
+        }
+
         // Obtener el índice de la cámara activa (la que se muestra en la pantalla)
         int indiceActual = sistemaCamaras.camaraSeleccionada;
 
@@ -30,9 +42,7 @@ public class BotonFlashSeguridad : MonoBehaviour, IInteractuable
         {
             Debug.Log($"Cámara {indiceActual + 1} no permite flash. Solo índices: {string.Join(", ", indicesPermitidos)}");
             if (audioSource != null && sonidoError != null)
-            {
-                // audioSource.PlayOneShot(sonidoError);
-            }
+                audioSource.PlayOneShot(sonidoError);
             return;
         }
 
@@ -61,11 +71,23 @@ public class BotonFlashSeguridad : MonoBehaviour, IInteractuable
         // Reproducir sonido del botón (si existe)
         if (audioSource != null && sonidoBoton != null)
         {
-            // audioSource.PlayOneShot(sonidoBoton);
+            audioSource.PlayOneShot(sonidoBoton);
             Debug.Log("Botón flash presionado");
         }
 
         // Activar el flash en la cámara actual
         control.ActivarFlash();
+    }
+
+    /// <summary>
+    /// Devuelve true SOLO si el dinosaurio está actualmente en Fase 1:
+    /// el GameObject visual del dino está activo y no está en fase 2.
+    /// </summary>
+    private bool Fase1DinoActiva()
+    {
+        if (controlDino == null) return false;
+        if (controlDino.dinosaurio == null) return false;
+        if (!controlDino.dinosaurio.activeInHierarchy) return false;
+        return true;
     }
 }

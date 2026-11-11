@@ -15,8 +15,6 @@ public class JumpscareController : MonoBehaviour
     public List<GameObject> panelesAOcultar = new List<GameObject>();
 
     [Header("Audio y Game Over")]
-    public AudioSource audioSource;
-    public AudioClip sonidoJumpscare;
     public AudioClip sonidoGameOver;
     public GameObject pantallaGameOver;
 
@@ -55,8 +53,6 @@ public class JumpscareController : MonoBehaviour
             if (panel != null) panel.SetActive(false);
         }
 
-        if (audioSource != null && sonidoJumpscare != null)
-            audioSource.PlayOneShot(sonidoJumpscare);
 
         if (canvasJumpscare != null && camaraJugador != null)
         {
@@ -86,10 +82,6 @@ public class JumpscareController : MonoBehaviour
 
         if (pantallaGameOver != null)
             pantallaGameOver.SetActive(true);
-
-        if (audioSource != null && sonidoGameOver != null)
-            audioSource.PlayOneShot(sonidoGameOver);
-
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }

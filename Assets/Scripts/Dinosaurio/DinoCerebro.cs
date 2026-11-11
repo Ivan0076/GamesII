@@ -22,6 +22,7 @@ public class DinoCerebro : MonoBehaviour
 
     // EVENTOS para el ControlDino
     public System.Action OnDinoAtrapado;
+    public System.Action OnDinoLlegoAlFinal;
 
     private Animator animator;
     private int puntoActual = 0;
@@ -46,13 +47,7 @@ public class DinoCerebro : MonoBehaviour
         if (animator == null) animator = GetComponentInChildren<Animator>();
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
 
-        if (puntos == null || puntos.Length == 0) return;
-
-        atrapado = false;
-        puntoActual = 0;
-
-        if (rutinaActual != null) StopCoroutine(rutinaActual);
-        rutinaActual = StartCoroutine(RecorrerRuta());
+        ReiniciarRecorrido();
     }
 
     private void OnDisable()
@@ -62,6 +57,39 @@ public class DinoCerebro : MonoBehaviour
             StopCoroutine(rutinaActual);
             rutinaActual = null;
         }
+    }
+
+    /// <summary>
+    /// Reinicia el estado del dino: lo devuelve al punto inicial,
+    /// limpia el flag de atrapado y (si el objeto está activo) arranca la ruta.
+    /// Es seguro llamarlo con el objeto inactivo; en ese caso OnEnable
+    /// arrancará la corrutina al activarse.
+    /// </summary>
+    public void ReiniciarRecorrido()
+    {
+        atrapado = false;
+        puntoActual = 0;
+
+        if (rutinaActual != null)
+        {
+            StopCoroutine(rutinaActual);
+            rutinaActual = null;
+        }
+
+        if (puntos == null || puntos.Length == 0) return;
+
+        // Colocar visualmente en el punto inicial
+        Vector3 pos = puntos[0].transform.position;
+        pos.y += altura;
+        transform.position = pos;
+
+        // Asegurar pose de inicio
+        CambiarPose(puntos[0].tipo);
+
+        // Solo arrancar corrutina si el objeto está activo.
+        // Si está inactivo, OnEnable la arrancará al activarse.
+        if (isActiveAndEnabled)
+            rutinaActual = StartCoroutine(RecorrerRuta());
     }
 
     private IEnumerator RecorrerRuta()
@@ -99,14 +127,20 @@ public class DinoCerebro : MonoBehaviour
         if (audioSource != null && sonidoJumpscare != null) audioSource.PlayOneShot(sonidoJumpscare);
         yield return new WaitForSeconds(duracionJumpscare);
 
-        gameObject.SetActive(false);
-
+        // IMPORTANTE: activar fase 2 ANTES de desactivar este GameObject.
+        // Si desactivamos primero, la corrutina se detiene y la fase 2 nunca se activaría.
         if (dinosaurioFase2 != null)
         {
             dinosaurioFase2.SetActive(true);
             DinoFaseDos fase2 = dinosaurioFase2.GetComponent<DinoFaseDos>();
             if (fase2 != null) fase2.IniciarFase();
         }
+
+        // Avisar al ControlDino que llegó al final (libera el slot en el Director)
+        OnDinoLlegoAlFinal?.Invoke();
+
+        // Desactivar el dino original
+        gameObject.SetActive(false);
     }
 
     private void CambiarPose(PuntosDino.TipoPunto tipo)
