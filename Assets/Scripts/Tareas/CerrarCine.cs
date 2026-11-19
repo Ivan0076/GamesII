@@ -38,6 +38,8 @@ public class CerrarCine : TareaBase, IInteractuable
         {
             // Usamos SetTrigger en lugar de Play para mayor seguridad
             animLetrero.SetTrigger(nombreTrigger);
+
+            Debug.LogError("Trigger Activado");
             Debug.Log($"Trigger '{nombreTrigger}' activado en el Animator.");
         }
 
