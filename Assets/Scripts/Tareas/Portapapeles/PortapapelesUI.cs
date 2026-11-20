@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using TMPro;
 using UnityEngine.InputSystem;
+using System;
 
 public class PortapapelesUI : MonoBehaviour
 {
@@ -22,7 +23,7 @@ public class PortapapelesUI : MonoBehaviour
     void Start()
     {
         if (gestorTareas == null)
-            gestorTareas = FindFirstObjectByType<GestorTareas>();
+            gestorTareas = FindByObjectByType<GestorTareas>();
 
         if (gestorTareas != null)
         {
@@ -49,6 +50,11 @@ public class PortapapelesUI : MonoBehaviour
 
         // Actualizar el texto 3D al inicio
         ActualizarListaTareas();
+    }
+
+    private T FindByObjectByType<T>()
+    {
+        throw new NotImplementedException();
     }
 
     void Update()

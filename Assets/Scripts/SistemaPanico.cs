@@ -1,14 +1,15 @@
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
-using UnityEngine;
 using UnityEngine.UI;
 
 public class SistemaPanico : MonoBehaviour
 {
-
-    [Header("Activacion")]
-    public float tiempoActivacionPanico = 60f; // 1 minutos
-    private float tiempoTranscurrido = 0f;
+    [Header("Condición de Inicio")]
+    [Tooltip("Arrastra aquí la tarea de Cerrar Cine")]
+    public TareaBase tareaCerrarCine;
+    [Tooltip("Arrastra aquí la tarea de Apagar Proyectores")]
+    public TareaBase tareaApagarProyectores;
     private bool panicoActivo = false;
 
     [Header("Panico")]
@@ -37,61 +38,57 @@ public class SistemaPanico : MonoBehaviour
 
     void Update()
     {
+        if (juegoTerminado) return;
 
-        if (juegoTerminado)
-            return;
-
-
-        tiempoTranscurrido += Time.deltaTime;
-
-        if (!panicoActivo && tiempoTranscurrido >= tiempoActivacionPanico)
-        {
-            panicoActivo = true;
-            Debug.Log("Sistema de pánico ACTIVADO");
-        }
-
+        // 1. COMPROBAR SI LAS TAREAS INICIALES ESTÁN HECHAS
         if (!panicoActivo)
         {
-            return;
+            if (tareaCerrarCine != null && tareaApagarProyectores != null)
+            {
+                if (tareaCerrarCine.EstaCompletada && tareaApagarProyectores.EstaCompletada)
+                {
+                    panicoActivo = true;
+                    Debug.Log("Sistema de pánico ACTIVADO (Tareas iniciales completadas)");
+                }
+            }
+            return; // Si no están hechas, no hacemos nada más
         }
 
         bool monstruoCerca = false;
 
         foreach (Transform monstruo in monstruos)
         {
-            float distancia = Vector3.Distance(
-                jugador.position,
-                monstruo.position);
+            // 2. IGNORAR ENEMIGOS DESACTIVADOS O QUE YA NO ESTÁN EN ESCENA
+            if (monstruo == null || !monstruo.gameObject.activeInHierarchy)
+                continue;
+
+            float distancia = Vector3.Distance(jugador.position, monstruo.position);
 
             if (distancia <= distanciaDeteccion)
             {
                 monstruoCerca = true;
-
                 panico += velocidadAumentoPanico * Time.deltaTime;
             }
         }
 
+        // Si no hay ningún enemigo activo cerca, el pánico baja
         if (!monstruoCerca)
         {
             panico -= velocidadDisminucionPanico * Time.deltaTime;
         }
 
-        panico = Mathf.Clamp(
-            panico,
-            0f,
-            panicoMaximo);
+        panico = Mathf.Clamp(panico, 0f, panicoMaximo);
 
-        barraPanico.fillAmount = panico / panicoMaximo;
+        if (barraPanico != null)
+        {
+            barraPanico.fillAmount = panico / panicoMaximo;
+            barraPanico.color = Color.Lerp(Color.green, Color.red, panico / panicoMaximo);
+        }
 
         if (textoPorcentaje != null)
         {
             textoPorcentaje.text = "Pánico: " + Mathf.RoundToInt(panico) + "%";
         }
-
-        barraPanico.color = Color.Lerp(
-        Color.green,
-        Color.red,
-        panico / panicoMaximo);
 
         if (panico >= panicoMaximo)
         {
@@ -102,11 +99,8 @@ public class SistemaPanico : MonoBehaviour
     void ActivarGameOver()
     {
         juegoTerminado = true;
-
-        panelGameOver.SetActive(true);
-
+        if (panelGameOver != null) panelGameOver.SetActive(true);
         Time.timeScale = 0f;
-
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
@@ -114,8 +108,6 @@ public class SistemaPanico : MonoBehaviour
     public void VolverAlMenu()
     {
         Time.timeScale = 1f;
-
-
         SceneManager.LoadScene("MenuPrincipal");
     }
 }

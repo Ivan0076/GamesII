@@ -60,7 +60,7 @@ public class TareaBase : MonoBehaviour, ITarea
         completada = true;
         Debug.Log($"Tarea '{_nombreTarea}' completada.");
 
-        GestorTareas gestor = FindFirstObjectByType<GestorTareas>();
+        GestorTareas gestor = FindAnyObjectByType<GestorTareas>();
         if (gestor != null)
             gestor.RegistrarTareaCompletada(this);
         else

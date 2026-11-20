@@ -1,45 +1,24 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class LimpiarSala : TareaBase
 {
-    [Header("Configuración de limpieza")]
-    public int manchasNecesarias = 4;
-    private int limpiadas = 0;
+    [Header("Manchas a limpiar (Arrastrar desde la escena)")]
+    public List<Mancha> manchas = new List<Mancha>();
 
-    public override void IniciarTarea()
+    public void LimpiarMancha(Mancha mancha)
     {
-        if (EstaIniciada || EstaCompletada) return;
+        if (EstaCompletada) return;
 
-        base.IniciarTarea();
-        limpiadas = 0;
-        NotificarProgreso();
-        Debug.Log($"Tarea '{nombreTarea}' iniciada. Limpia {manchasNecesarias} manchas.");
+        if (manchas.Contains(mancha))
+        {
+            manchas.Remove(mancha);
+            NotificarProgreso();
+            Debug.Log($"Mancha limpiada. Quedan: {manchas.Count}");
+
+            if (manchas.Count == 0) CompletarTarea();
+        }
     }
 
-    public void LimpiarMancha()
-    {
-        if (limpiadas >= manchasNecesarias || EstaCompletada) return;
-
-        limpiadas++;
-        NotificarProgreso();
-        Debug.Log($"Mancha limpiada: {limpiadas}/{manchasNecesarias}");
-
-        if (limpiadas >= manchasNecesarias)
-            CompletarTarea();
-    }
-
-    public override string ObtenerProgreso()
-    {
-        return $"{limpiadas}/{manchasNecesarias}";
-    }
-    // --- Preparación para VR (comentado) ---
-    // public void OnTriggerEnter(Collider other)
-    // {
-    //     if (other.CompareTag("Player") && !EstaCompletada)
-    //     {
-    //         // Lógica para limpiar por proximidad en VR
-    //     }
-    // }
+    public override string ObtenerProgreso() => $"{manchas.Count} restantes";
 }
-
-

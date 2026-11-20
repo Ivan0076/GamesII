@@ -125,8 +125,21 @@ public class DinoFaseDos : MonoBehaviour
     {
         activo = false;
         if (agente != null) agente.isStopped = true;
-        if (audioSource != null && sonidoRendicion != null) audioSource.PlayOneShot(sonidoRendicion);
-        OnDinoSeRinde?.Invoke();
+        OnDinoSeRinde?.Invoke(); // Avisamos al Director
+
+        StartCoroutine(RutinaDesaparecer());
+    }
+
+    private System.Collections.IEnumerator RutinaDesaparecer()
+    {
+        // Si hay sonido, lo reproducimos y esperamos a que termine
+        if (audioSource != null && sonidoRendicion != null)
+        {
+            audioSource.PlayOneShot(sonidoRendicion);
+            yield return new WaitForSeconds(sonidoRendicion.length);
+        }
+
+        // Después de que suene (o si no hay sonido), desaparece
         gameObject.SetActive(false);
     }
 

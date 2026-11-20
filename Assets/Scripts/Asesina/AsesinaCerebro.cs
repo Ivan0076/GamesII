@@ -1,12 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
 
-public enum EstadosAsesina
-{
-    esta_atacando,
-    esta_persiguiendo,
-}
-
 public class AsesinaCerebro : MonoBehaviour
 {
     [Header("Referencias")]
@@ -28,7 +22,20 @@ public class AsesinaCerebro : MonoBehaviour
 
     [Header("Velocidades")]
     public float velocidadPatrulla = 2.5f;
-    public float velocidadPersecucion = 5f;
+    public float velocidadPersecucion = 5.5f; // Un poco más rápida que el jugador
+
+    [Header("Persecución Mejorada")]
+    [Tooltip("Distancia a la que se detendrá frente al jugador (para no empujarlo)")]
+    public float distanciaParada = 1.2f;
+    [Tooltip("Cuánto tiempo pasa entre recálculos de ruta (0.1 es óptimo)")]
+    private float tiempoActualizacionRuta = 0f;
+
+    [Header("Audio de Alerta")]
+    public AudioClip sonidoAlertaJugador;
+    public AudioClip sonidoAsesina;
+
+    private AudioSource audioSourceJugador;
+    private AudioSource audioSourceAsesina;
 
     private enum Estado { Patrulla, Persecucion }
     private Estado estadoActual = Estado.Patrulla;
@@ -42,7 +49,6 @@ public class AsesinaCerebro : MonoBehaviour
     private Color colorPatrulla = Color.yellow;
     private Color colorPersecucion = Color.red;
 
-    // Cambiamos Start por OnEnable para que se reinicie cada vez que el Director la invoque
     void OnEnable()
     {
         if (agente == null) agente = GetComponent<NavMeshAgent>();
@@ -51,7 +57,19 @@ public class AsesinaCerebro : MonoBehaviour
         if (rendererCuerpo == null)
             rendererCuerpo = GetComponentInChildren<Renderer>();
 
-        // Reiniciamos variables de estado
+        audioSourceAsesina = GetComponent<AudioSource>();
+        if (audioSourceAsesina == null) audioSourceAsesina = gameObject.AddComponent<AudioSource>();
+
+        if (jugador != null)
+        {
+            audioSourceJugador = jugador.GetComponentInChildren<AudioSource>();
+            if (audioSourceJugador == null)
+            {
+                Camera cam = jugador.GetComponentInChildren<Camera>();
+                if (cam != null) audioSourceJugador = cam.gameObject.AddComponent<AudioSource>();
+            }
+        }
+
         estadoActual = Estado.Patrulla;
         esperando = false;
         temporizadorEspera = 0f;
@@ -76,6 +94,9 @@ public class AsesinaCerebro : MonoBehaviour
             estadoActual = Estado.Persecucion;
             temporizadorPerdida = 0f;
             ActualizarApariencia();
+
+            ReproducirSonidosDeDeteccion();
+            GirarHaciaElJugadorInstantaneamente();
         }
         else if (estadoActual == Estado.Persecucion && !jugadorVisible)
         {
@@ -98,8 +119,7 @@ public class AsesinaCerebro : MonoBehaviour
         }
         else
         {
-            if (jugadorVisible)
-                temporizadorPerdida = 0f;
+            if (jugadorVisible) temporizadorPerdida = 0f;
         }
 
         switch (estadoActual)
@@ -108,15 +128,62 @@ public class AsesinaCerebro : MonoBehaviour
                 EstadoPatrulla();
                 break;
             case Estado.Persecucion:
-                EstadoPersecucion();
+                EstadoPersecucionMejorada(); // Llamamos al nuevo método
                 break;
+        }
+    }
+
+    // --- LÓGICA DE PERSECUCIÓN MEJORADA ---
+    void EstadoPersecucionMejorada()
+    {
+        if (agente == null) return;
+
+        agente.isStopped = false;
+        agente.stoppingDistance = distanciaParada; // Evita que se te encime
+
+        // 1. Actualizamos la ruta solo cada 0.1 segundos (hace los movimientos más suaves)
+        tiempoActualizacionRuta += Time.deltaTime;
+        if (tiempoActualizacionRuta >= 0.1f)
+        {
+            // 2. Anticipación: Apuntamos un poco más adelante de la posición del jugador
+            Vector3 posicionObjetivo = jugador.position + (jugador.forward * 0.5f);
+            agente.SetDestination(posicionObjetivo);
+
+            tiempoActualizacionRuta = 0f;
+        }
+
+        // 3. Sistema Anti-atascos: Si el agente debería moverse pero está quieto, recalculamos
+        if (agente.velocity.magnitude < 0.1f && !agente.pathPending && agente.hasPath)
+        {
+            agente.ResetPath();
+            agente.SetDestination(jugador.position);
+        }
+    }
+
+    private void ReproducirSonidosDeDeteccion()
+    {
+        if (audioSourceJugador != null && sonidoAlertaJugador != null)
+            audioSourceJugador.PlayOneShot(sonidoAlertaJugador);
+        if (audioSourceAsesina != null && sonidoAsesina != null)
+            audioSourceAsesina.PlayOneShot(sonidoAsesina);
+    }
+
+    private void GirarHaciaElJugadorInstantaneamente()
+    {
+        if (agente != null)
+        {
+            agente.updateRotation = false;
+            Vector3 direccion = (jugador.position - transform.position).normalized;
+            direccion.y = 0;
+            if (direccion != Vector3.zero)
+                transform.rotation = Quaternion.LookRotation(direccion);
+            agente.updateRotation = true;
         }
     }
 
     bool IsPlayerVisible()
     {
         if (jugador == null) return false;
-
         Vector3 origen = transform.position + Vector3.up * alturaOjos;
         Vector3 objetivo = jugador.position + Vector3.up * 1f;
         Vector3 direccion = objetivo - origen;
@@ -127,8 +194,7 @@ public class AsesinaCerebro : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(origen, direccion, out hit, radioVision, mascaraDeteccion))
         {
-            if (hit.collider.CompareTag("Player")) return true;
-            else return false;
+            return hit.collider.CompareTag("Player");
         }
         return false;
     }
@@ -157,15 +223,6 @@ public class AsesinaCerebro : MonoBehaviour
         }
     }
 
-    void EstadoPersecucion()
-    {
-        if (agente != null)
-        {
-            agente.SetDestination(jugador.position);
-            if (agente.isStopped) agente.isStopped = false;
-        }
-    }
-
     void ActualizarApariencia()
     {
         if (rendererCuerpo != null)
@@ -173,23 +230,18 @@ public class AsesinaCerebro : MonoBehaviour
             Color nuevoColor = (estadoActual == Estado.Patrulla) ? colorPatrulla : colorPersecucion;
             rendererCuerpo.material.color = nuevoColor;
         }
-
         if (agente != null)
         {
             agente.speed = (estadoActual == Estado.Patrulla) ? velocidadPatrulla : velocidadPersecucion;
         }
     }
 
-    public bool EstaPersiguiendo
-    {
-        get { return estadoActual == Estado.Persecucion; }
-    }
+    public bool EstaPersiguiendo => estadoActual == Estado.Persecucion;
 
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, radioVision);
-
         if (Application.isPlaying && jugador != null)
         {
             Vector3 origen = transform.position + Vector3.up * alturaOjos;

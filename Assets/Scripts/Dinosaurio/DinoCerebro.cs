@@ -59,12 +59,11 @@ public class DinoCerebro : MonoBehaviour
         }
     }
 
-    /// <summary>
     /// Reinicia el estado del dino: lo devuelve al punto inicial,
     /// limpia el flag de atrapado y (si el objeto está activo) arranca la ruta.
     /// Es seguro llamarlo con el objeto inactivo; en ese caso OnEnable
     /// arrancará la corrutina al activarse.
-    /// </summary>
+
     public void ReiniciarRecorrido()
     {
         atrapado = false;
@@ -100,17 +99,20 @@ public class DinoCerebro : MonoBehaviour
 
             PuntosDino punto = puntos[puntoActual];
 
+            // 1. PRIMERO se mueve al punto
+            Vector3 pos = punto.transform.position;
+            pos.y += altura;
+            transform.position = pos;
+
+            // 2. Si es el final, disparamos la secuencia
             if (punto.tipo == PuntosDino.TipoPunto.Final)
             {
                 yield return StartCoroutine(SecuenciaFinal());
                 yield break;
             }
 
+            // 3.Si no es el final, cambia pose y espera
             CambiarPose(punto.tipo);
-
-            Vector3 pos = punto.transform.position;
-            pos.y += altura;
-            transform.position = pos;
 
             float t = 0f;
             while (t < punto.tiempoEspera)
@@ -155,7 +157,7 @@ public class DinoCerebro : MonoBehaviour
         if (atrapado) return;
         atrapado = true;
 
-        // Avisamos al ControlDino que fuimos atrapados
+        // Avisamos al ControlDino que fue atrapado
         OnDinoAtrapado?.Invoke();
 
         if (animator != null) animator.SetInteger("EstadoPose", POSE_ATRAPADO);

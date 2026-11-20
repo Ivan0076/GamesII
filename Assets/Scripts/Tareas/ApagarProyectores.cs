@@ -1,42 +1,25 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class ApagarProyectores : TareaBase
 {
-    [Header("Configuraci�n de proyectores")]
-    public int proyectoresNecesarios = 2;   // Cantidad de proyectores a apagar
-    private int apagados = 0;
+    [Header("Proyectores a apagar (Arrastrar desde la escena)")]
+    public List<Proyector> proyectores = new List<Proyector>();
 
-    public override void IniciarTarea()
+    public void ApagarProyector(Proyector proyector)
     {
-        base.IniciarTarea();
-        apagados = 0;
-        Debug.Log($"Tarea '{nombreTarea}' iniciada. Apaga {proyectoresNecesarios} proyectores.");
-    }
+        if (EstaCompletada) return;
 
-    /// <summary>
-    /// M�todo llamado desde cada proyector cuando se interact�a con �l.
-    /// </summary>
-    public void ApagarProyector()
-    {
-        // Evitar que se siga apagando si ya est� completada o se alcanz� el l�mite
-        if (apagados >= proyectoresNecesarios || EstaCompletada) return;
-
-        apagados++;
-        Debug.Log($"Proyector apagado: {apagados}/{proyectoresNecesarios}");
-
-        // Si se alcanz� la cantidad necesaria, completar la tarea
-        if (apagados >= proyectoresNecesarios)
+        // Si el proyector está en la lista, lo quitamos
+        if (proyectores.Contains(proyector))
         {
-            CompletarTarea();
+            proyectores.Remove(proyector);
+            NotificarProgreso(); // Actualiza el portapapeles
+            Debug.Log($"Proyector apagado. Quedan: {proyectores.Count}");
+
+            if (proyectores.Count == 0) CompletarTarea();
         }
     }
 
-    // --- Preparaci�n para VR (comentado) ---
-    // public void OnTriggerEnter(Collider other)
-    // {
-    //     if (other.CompareTag("Player") && !EstaCompletada)
-    //     {
-    //         // L�gica para apagar por proximidad en VR
-    //     }
-    // }
+    public override string ObtenerProgreso() => $"{proyectores.Count} restantes";
 }

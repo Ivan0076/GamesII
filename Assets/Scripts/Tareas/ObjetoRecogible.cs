@@ -1,55 +1,82 @@
 ﻿using UnityEngine;
 
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+
+[RequireComponent(typeof(Rigidbody))]
 public class ObjetoRecogible : MonoBehaviour, IInteractuable
 {
-    [Header("Referencia a la tarea")]
     public RecogerObjetoPerdidos tarea;
 
-    [Header("Feedback visual (opcional)")]
-    public GameObject efectoRecogida;
-    public AudioClip sonidoRecogida;
+    private Rigidbody rb;
+    private XRGrabInteractable grabInteractable;
+    private bool agarradoPorMouse = false;
+    private Transform camara;
 
-    private void Start()
+    private Vector3 posicionInicial;
+    private Quaternion rotacionInicial;
+
+    void Start()
     {
-        if (tarea == null)
-            tarea = FindFirstObjectByType<RecogerObjetoPerdidos>();
+        rb = GetComponent<Rigidbody>();
+        grabInteractable = GetComponent<XRGrabInteractable>();
+        if (tarea == null) tarea = FindFirstObjectByType<RecogerObjetoPerdidos>();
+        camara = Camera.main.transform;
 
-        if (tarea == null)
-            Debug.LogWarning("No se encontró una tarea de RecogerObjetosPerdidos en la escena.");
+        posicionInicial = transform.position;
+        rotacionInicial = transform.rotation;
     }
 
+    void Update()
+    {
+        if (tarea == null) return;
+
+        // Comprobamos si el jugador debería poder agarrar el objeto
+        bool puedeAgarrar = tarea.EstaIniciada && !tarea.EstaCompletada && !tarea.objetosRecuperados.Contains(gameObject);
+
+        // Activar/Desactivar el agarre en VR dinámicamente
+        if (grabInteractable != null && grabInteractable.enabled != puedeAgarrar)
+        {
+            grabInteractable.enabled = puedeAgarrar;
+        }
+    }
+
+    // Interacción para teclado/mouse
     public void Interactuar()
     {
-        // 🔥 Verificar que la tarea esté iniciada y no completada
-        if (tarea == null) return;
-        if (!tarea.EstaIniciada)
+        // Validaciones de seguridad
+        if (tarea == null || !tarea.EstaIniciada || tarea.EstaCompletada) return;
+        if (tarea.objetosRecuperados.Contains(gameObject)) return;
+
+        if (!agarradoPorMouse)
         {
-            Debug.Log("Aún no puedes recoger objetos. Completa las tareas previas.");
-            return;
+            agarradoPorMouse = true;
+            rb.isKinematic = true;
+            transform.SetParent(camara);
+            transform.localPosition = new Vector3(0, -0.3f, 1f);
         }
-        if (tarea.EstaCompletada)
+        else
         {
-            Debug.Log("Esta tarea ya está completada.");
-            return;
+            agarradoPorMouse = false;
+            rb.isKinematic = false;
+            transform.SetParent(null);
         }
-
-        // Notificar a la tarea
-        tarea.RecogerObjeto();
-
-        // Feedback
-        if (efectoRecogida != null)
-            Instantiate(efectoRecogida, transform.position, Quaternion.identity);
-        if (sonidoRecogida != null)
-            AudioSource.PlayClipAtPoint(sonidoRecogida, transform.position);
-
-        // Desactivar objeto
-        gameObject.SetActive(false);
-        Debug.Log($"Objeto '{gameObject.name}' recogido.");
     }
 
-    // --- Preparación para VR ---
-    // public void OnSelectEntered(SelectEnterEventArgs args)
-    // {
-    //     Interactuar();
-    // }
+    public void DevolverAlOrigen()
+    {
+        agarradoPorMouse = false;
+        transform.SetParent(null);
+
+        transform.position = posicionInicial;
+        transform.rotation = rotacionInicial;
+
+        rb.isKinematic = true;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.isKinematic = false;
+
+        gameObject.SetActive(true);
+
+        // El Update() se encargará de volver a activar el agarre si la tarea sigue en curso
+    }
 }

@@ -1,23 +1,25 @@
 ﻿using UnityEngine;
 using System.Collections;
+
 public class DirectorEnemigos : MonoBehaviour
 {
-    [Header("Tareas necesarias para activar el caos")]
+    [Header("Tareas necesarias (Opcional, dejar vacío si no se requiere)")]
     public TareaBase tareaCerrarCine;
     public TareaBase tareaApagarProyectores;
 
     [Header("Enemigos (Asignar Controladores)")]
     public ControlDino controlDino;
     public ControlAsesina controlAsesina;
-    // public ControlEnemigo3 controlEnemigo3; // Cuando lo tengas
+    // public ControlEnemigo3 controlEnemigo3;
 
-    [Header("Niveles de IA (Dificultad 1 al 20)")]
-    [Range(0, 20)] public int nivelIADino = 5;
-    [Range(0, 20)] public int nivelIAAsesina = 0;
+    [Header("Niveles de IA (Porcentaje 0% al 100%)")]
+    [Range(0, 100)] public int probabilidadDino = 0;
+    [Range(0, 100)] public int probabilidadAsesina = 0;
 
     [Header("Tiempos del Director")]
-    public float intervaloDados = 5f;       // Cada cuántos segundos se lanza el dado
-    public int maxEnemigosActivos = 2;      // Límite de enemigos al mismo tiempo
+    public float tiempoGraciaInicial = 10f; // Tiempo antes de empezar a tirar dados
+    public float intervaloDados = 8f;       // Cada cuántos segundos se lanza el dado
+    public int maxEnemigosActivos = 2;       // Límite de enemigos al mismo tiempo
 
     [Header("Cooldowns (Tiempo de espera tras irse)")]
     public float cooldownDino = 30f;
@@ -47,12 +49,31 @@ public class DirectorEnemigos : MonoBehaviour
     void Update()
     {
         // Revisar si las tareas están completas para encender el Director
-        if (!juegoActivo && tareaCerrarCine != null && tareaApagarProyectores != null)
+        if (!juegoActivo)
         {
-            if (tareaCerrarCine.EstaCompletada && tareaApagarProyectores.EstaCompletada)
+            // Si no se asignó ninguna tarea, el director se activa de inmediato
+            if (tareaCerrarCine == null && tareaApagarProyectores == null)
             {
                 juegoActivo = true;
-                Debug.Log("🎬 ¡Director activado! Las tareas iniciales están hechas.");
+                Debug.Log("Director activado (sin tareas previas asignadas).");
+            }
+            // Si hay tareas asignadas, comprobar que estén completas
+            else if (tareaCerrarCine != null && tareaApagarProyectores != null)
+            {
+                if (tareaCerrarCine.EstaCompletada && tareaApagarProyectores.EstaCompletada)
+                {
+                    juegoActivo = true;
+                    Debug.Log("Director activado (tareas iniciales completadas).");
+                }
+            }
+            // Si solo se asignó una tarea, comprobar solo esa
+            else if (tareaCerrarCine != null && tareaCerrarCine.EstaCompletada)
+            {
+                juegoActivo = true;
+            }
+            else if (tareaApagarProyectores != null && tareaApagarProyectores.EstaCompletada)
+            {
+                juegoActivo = true;
             }
         }
 
@@ -63,28 +84,33 @@ public class DirectorEnemigos : MonoBehaviour
 
     IEnumerator RutinaDirector()
     {
+        // Esperar a que el director se active
+        while (!juegoActivo) yield return new WaitForSeconds(1f);
+
+        // Tiempo de gracia inicial para que el jugador explore
+        yield return new WaitForSeconds(tiempoGraciaInicial);
+
         while (true)
         {
             yield return new WaitForSeconds(intervaloDados);
 
-            if (!juegoActivo) continue; // No hacer nada si no se han hecho las tareas
             if (enemigosActivos >= maxEnemigosActivos) continue; // Límite alcanzado
 
-            // --- TIRADA DE DADOS PARA EL DINO ---
+            // --- TIRADA PARA EL DINO (0 a 100) ---
             if (!dinoEnJuego && tiempoCooldownDino <= 0f)
             {
-                int dado = Random.Range(1, 21); // Dado del 1 al 20
-                if (dado <= nivelIADino)
+                int dado = Random.Range(0, 100); // Genera un número del 0 al 99
+                if (dado < probabilidadDino)     // Si el dado es menor al %, aparece
                 {
                     ActivarDino();
                 }
             }
 
-            // --- TIRADA DE DADOS PARA LA ASESINA ---
+            // --- TIRADA PARA LA ASESINA (0 a 100) ---
             if (!asesinaEnJuego && tiempoCooldownAsesina <= 0f && enemigosActivos < maxEnemigosActivos)
             {
-                int dado = Random.Range(1, 21);
-                if (dado <= nivelIAAsesina)
+                int dado = Random.Range(0, 100);
+                if (dado < probabilidadAsesina)
                 {
                     ActivarAsesina();
                 }
@@ -97,7 +123,7 @@ public class DirectorEnemigos : MonoBehaviour
         dinoEnJuego = true;
         enemigosActivos++;
         controlDino.Aparecer();
-        Debug.Log($"🎲 ¡Dado exitoso para el Dino! ({enemigosActivos}/{maxEnemigosActivos} activos)");
+        Debug.Log($"¡{probabilidadDino}% de acierto para el Dino! ({enemigosActivos}/{maxEnemigosActivos} activos)");
     }
 
     void ActivarAsesina()
@@ -105,7 +131,7 @@ public class DirectorEnemigos : MonoBehaviour
         asesinaEnJuego = true;
         enemigosActivos++;
         controlAsesina.Aparecer();
-        Debug.Log($"🎲 ¡Dado exitoso para la Asesina! ({enemigosActivos}/{maxEnemigosActivos} activos)");
+        Debug.Log($"¡{probabilidadAsesina}% de acierto para la Asesina! ({enemigosActivos}/{maxEnemigosActivos} activos)");
     }
 
     void DinoRetirado()
@@ -113,7 +139,7 @@ public class DirectorEnemigos : MonoBehaviour
         dinoEnJuego = false;
         enemigosActivos--;
         tiempoCooldownDino = cooldownDino;
-        Debug.Log($"⏳ El Dino entró en Cooldown por {cooldownDino} segundos.");
+        Debug.Log($"El Dino entró en Cooldown por {cooldownDino} segundos.");
     }
 
     void AsesinaRetirada()
@@ -121,10 +147,9 @@ public class DirectorEnemigos : MonoBehaviour
         asesinaEnJuego = false;
         enemigosActivos--;
         tiempoCooldownAsesina = cooldownAsesina;
-        Debug.Log($"⏳ La Asesina entró en Cooldown por {cooldownAsesina} segundos.");
+        Debug.Log($"La Asesina entró en Cooldown por {cooldownAsesina} segundos.");
     }
 
-    // Método para reiniciar todo (llámalo cuando el jugador muera o reinicie la noche)
     public void ReiniciarNoche()
     {
         StopAllCoroutines();
