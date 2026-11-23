@@ -7,11 +7,7 @@ public class GestorTareas : MonoBehaviour
     [Header("Lista de tareas (asignar en el Inspector)")]
     public List<TareaBase> tareas;
 
-    private int tareasCompletadas = 0;
-
-    // Evento que se dispara cuando cualquier tarea se completa
     public event System.Action<ITarea> TareaCompletada;
-
     public event System.Action TodasLasTareasCompletadas;
 
     void Start()
@@ -22,34 +18,38 @@ public class GestorTareas : MonoBehaviour
     public void EvaluarTareas()
     {
         foreach (var t in tareas)
-        {
             if (t != null && !t.EstaCompletada && t.PuedeIniciarse())
-            {
                 t.IniciarTarea();
-            }
-        }
     }
 
     public void RegistrarTareaCompletada(ITarea tarea)
     {
-        tareasCompletadas++;
-        Debug.Log($"Tarea completada: {tarea.nombreTarea} ({tareasCompletadas}/{tareas.Count})");
+        Debug.Log($"Tarea completada: {tarea.nombreTarea}");
 
-        // Disparar evento para cada tarea completada
-        if (TareaCompletada != null)
-            TareaCompletada.Invoke(tarea);
-
+        TareaCompletada?.Invoke(tarea);
         EvaluarTareas();
 
-        if (tareasCompletadas >= tareas.Count)
+        // Contar directo de la lista (robusto)
+        int total = 0, completadas = 0;
+        foreach (var t in tareas)
+        {
+            if (t == null) continue;
+            total++;
+            if (t.EstaCompletada) completadas++;
+        }
+
+        Debug.Log($"Progreso global: {completadas}/{total}");
+
+        if (total > 0 && completadas >= total)
         {
             Debug.Log("¡Todas las tareas completadas! La noche ha terminado.");
+            TodasLasTareasCompletadas?.Invoke();
 
-            GameManager.Instance.nocheActual++;
-
-            Debug.Log("Siguiente noche: " + GameManager.Instance.nocheActual);
-
-            SceneManager.LoadScene("TransicionNoche");
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.nocheActual++;
+                SceneManager.LoadScene("TransicionNoche");
+            }
         }
     }
 }

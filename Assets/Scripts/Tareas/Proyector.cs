@@ -9,7 +9,6 @@ public class Proyector : MonoBehaviour, IInteractuable
     public GameObject luzProyector;
     public VideoPlayer videoPlayer;
     public AudioSource audioProyector;
-    public Material materialApagado;
 
     private bool apagado = false;
 
@@ -31,12 +30,11 @@ public class Proyector : MonoBehaviour, IInteractuable
         if (luzProyector != null) luzProyector.SetActive(false);
         if (videoPlayer != null) videoPlayer.Stop();
         if (audioProyector != null) audioProyector.Stop();
-        if (materialApagado != null) GetComponent<Renderer>().material = materialApagado;
 
         // Desactivar collider para que no se pueda volver a interactuar
         Collider col = GetComponent<Collider>();
         if (col != null) col.enabled = false;
 
-        tarea.ApagarProyector(this);
+        tarea.ApagarProyector();
     }
 }

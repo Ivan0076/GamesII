@@ -13,7 +13,7 @@ public class EnemigoRequisitos : MonoBehaviour
 
     void Start()
     {
-        GestorTareas gestor = FindFirstObjectByType<GestorTareas>();
+        GestorTareas gestor = FindAnyObjectByType<GestorTareas>();
         if (gestor != null)
         {
             gestor.TareaCompletada += OnTareaCompletada;
@@ -29,7 +29,7 @@ public class EnemigoRequisitos : MonoBehaviour
 
     void OnDestroy()
     {
-        GestorTareas gestor = FindFirstObjectByType<GestorTareas>();
+        GestorTareas gestor = FindAnyObjectByType<GestorTareas > ();
         if (gestor != null)
             gestor.TareaCompletada -= OnTareaCompletada;
     }

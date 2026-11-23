@@ -10,7 +10,7 @@ public class PortapapelesObjeto : MonoBehaviour, IInteractuable
     void Start()
     {
         if (uiPortapapeles == null)
-            uiPortapapeles = FindFirstObjectByType<PortapapelesUI>();
+            uiPortapapeles = FindAnyObjectByType<PortapapelesUI>();
 
         if (uiPortapapeles == null)
             Debug.LogWarning("No se encontró PortapapelesUI.");
@@ -29,8 +29,6 @@ public class PortapapelesObjeto : MonoBehaviour, IInteractuable
 
         if (uiPortapapeles != null)
             uiPortapapeles.MostrarPortapapeles(true);
-
-        Debug.Log("Portapapeles recogido. Presiona Q para soltarlo.");
     }
 
     public void Soltar()

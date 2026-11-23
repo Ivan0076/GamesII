@@ -19,7 +19,7 @@ public class ObjetoRecogible : MonoBehaviour, IInteractuable
     {
         rb = GetComponent<Rigidbody>();
         grabInteractable = GetComponent<XRGrabInteractable>();
-        if (tarea == null) tarea = FindFirstObjectByType<RecogerObjetoPerdidos>();
+        if (tarea == null) tarea = FindAnyObjectByType<RecogerObjetoPerdidos>();
         camara = Camera.main.transform;
 
         posicionInicial = transform.position;

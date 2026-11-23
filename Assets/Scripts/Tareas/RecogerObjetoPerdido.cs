@@ -9,6 +9,9 @@ public class RecogerObjetoPerdidos : TareaBase
     [Header("Objetos ya entregados (No asignar, se llena solo)")]
     public List<GameObject> objetosRecuperados = new List<GameObject>();
 
+    // Evento que avisa cuando el jugador entrega un objeto en la zona
+    public System.Action OnObjetoEntregado;
+
     public bool EntregarObjeto(GameObject objeto)
     {
         if (EstaCompletada) return false;
@@ -17,9 +20,11 @@ public class RecogerObjetoPerdidos : TareaBase
         if (objetos.Contains(objeto))
         {
             objetos.Remove(objeto);
-            objetosRecuperados.Add(objeto); // Se guarda en la lista de recuperados
-            NotificarProgreso(); // 🔥 Actualiza el portapapeles (ej. de 0/3 a 1/3)
+            objetosRecuperados.Add(objeto);
+            NotificarProgreso();
             Debug.Log($"Objeto entregado. Quedan pendientes: {objetos.Count}");
+
+            OnObjetoEntregado?.Invoke();
 
             if (objetos.Count == 0) CompletarTarea();
             return true;
@@ -27,34 +32,9 @@ public class RecogerObjetoPerdidos : TareaBase
         return false;
     }
 
-    public void DevolverUnObjetoAlAzar()
+    public void ActualizarProgresoExterno()
     {
-        // Si no hay objetos recuperados, no hace nada
-        if (objetosRecuperados.Count == 0)
-        {
-            Debug.Log("El enemigo intentó devolver un objeto, pero la lista está vacía.");
-            return;
-        }
-
-        // Elegimos un índice al azar de la lista de recuperados
-        int indiceAleatorio = Random.Range(0, objetosRecuperados.Count);
-        GameObject objetoA_Devolver = objetosRecuperados[indiceAleatorio];
-
-        // Le decimos al objeto que regrese a su punto inicial (Punto X)
-        ObjetoRecogible scriptObjeto = objetoA_Devolver.GetComponent<ObjetoRecogible>();
-        if (scriptObjeto != null)
-        {
-            scriptObjeto.DevolverAlOrigen();
-        }
-
-        // Lo sacamos de la lista de recuperados y lo volvemos a poner en la de pendientes
-        objetosRecuperados.RemoveAt(indiceAleatorio);
-        objetos.Add(objetoA_Devolver);
-
         NotificarProgreso();
-
-        Debug.Log($"¡El enemigo devolvió el objeto '{objetoA_Devolver.name}' a su lugar!");
     }
-
     public override string ObtenerProgreso() => $"{objetos.Count} restantes";
 }
