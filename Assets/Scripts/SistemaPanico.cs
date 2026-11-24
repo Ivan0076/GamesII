@@ -1,14 +1,12 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.UI;
 
 public class SistemaPanico : MonoBehaviour
 {
-    [Header("CondiciÛn de Inicio")]
-    [Tooltip("Arrastra aquÌ la tarea de Cerrar Cine")]
+    [Header("Condici√≥n de Inicio")]
     public TareaBase tareaCerrarCine;
-    [Tooltip("Arrastra aquÌ la tarea de Apagar Proyectores")]
     public TareaBase tareaApagarProyectores;
     private bool panicoActivo = false;
 
@@ -40,7 +38,6 @@ public class SistemaPanico : MonoBehaviour
     {
         if (juegoTerminado) return;
 
-        // 1. COMPROBAR SI LAS TAREAS INICIALES EST¡N HECHAS
         if (!panicoActivo)
         {
             if (tareaCerrarCine != null && tareaApagarProyectores != null)
@@ -48,19 +45,16 @@ public class SistemaPanico : MonoBehaviour
                 if (tareaCerrarCine.EstaCompletada && tareaApagarProyectores.EstaCompletada)
                 {
                     panicoActivo = true;
-                    Debug.Log("Sistema de p·nico ACTIVADO (Tareas iniciales completadas)");
                 }
             }
-            return; // Si no est·n hechas, no hacemos nada m·s
+            return;
         }
 
         bool monstruoCerca = false;
 
         foreach (Transform monstruo in monstruos)
         {
-            // 2. IGNORAR ENEMIGOS DESACTIVADOS O QUE YA NO EST¡N EN ESCENA
-            if (monstruo == null || !monstruo.gameObject.activeInHierarchy)
-                continue;
+            if (monstruo == null || !monstruo.gameObject.activeInHierarchy) continue;
 
             float distancia = Vector3.Distance(jugador.position, monstruo.position);
 
@@ -71,7 +65,6 @@ public class SistemaPanico : MonoBehaviour
             }
         }
 
-        // Si no hay ning˙n enemigo activo cerca, el p·nico baja
         if (!monstruoCerca)
         {
             panico -= velocidadDisminucionPanico * Time.deltaTime;
@@ -87,13 +80,20 @@ public class SistemaPanico : MonoBehaviour
 
         if (textoPorcentaje != null)
         {
-            textoPorcentaje.text = "P·nico: " + Mathf.RoundToInt(panico) + "%";
+            textoPorcentaje.text = "P√°nico: " + Mathf.RoundToInt(panico) + "%";
         }
 
         if (panico >= panicoMaximo)
         {
             ActivarGameOver();
         }
+    }
+
+    // M√âTODO P√öBLICO PARA QUE EL FANTASMA SUME P√ÅNICO
+    public void AumentarPanico(float cantidad)
+    {
+        panico += cantidad;
+        Debug.Log($"¬°P√°nico aumentado por susto! +{cantidad}");
     }
 
     void ActivarGameOver()

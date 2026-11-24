@@ -1,14 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-public enum EstadoFantasma
-{
-    Inactivo,
-    Ausente,
-    EsperandoJumpscare,
-    Jumpscare,
-    Manos
-}
+public enum EstadoFantasma { Inactivo, EsperandoRobo, Jumpscare, Manos }
 
 public class CerebroFantasma : MonoBehaviour
 {
@@ -19,6 +12,13 @@ public class CerebroFantasma : MonoBehaviour
     [Header("Conexión con Tarea")]
     public RecogerObjetoPerdidos tareaObjetos;
 
+    [Header("Probabilidad de Robo")]
+    [Range(0, 100)] public int probabilidadRobar = 50;
+
+    [Header("Sistema de Pánico")]
+    public SistemaPanico sistemaPanico;
+    public float panicoQueAumenta = 25f;
+
     [Header("Manos")]
     public GameObject manoIzquierda;
     public GameObject manoDerecha;
@@ -27,18 +27,16 @@ public class CerebroFantasma : MonoBehaviour
     public int ciclosManosMaximos = 2;
 
     [Header("Tiempos")]
-    public float tiempoAusente = 5f;
-    public float tiempoDelayJumpscare = 4f;
-    public float tiempoDelayManos = 2f;
+    public float tiempoEsperaAntesDeRobar = 4f;
+    public float duracionJumpscare = 1.5f;
 
     [Header("Jumpscare")]
-    public Transform jugador; // Asigna aquí la Main Camera del jugador (VR)
-    public float distanciaJumpscare = 2f; // Más cerca para que no quede detrás de paredes
-    public float ajusteAlturaJumpscare = -0.3f; // Ajuste vertical respecto a los ojos
+    public Transform jugador;
+    public float distanciaJumpscare = 1.5f;
+    public float ajusteAlturaJumpscare = -0.2f;
     public AudioSource audioSourceJumpscare;
     public AudioClip sonidoJumpscare;
 
-    // Evento para avisar a ControlFantasma que terminó toda su secuencia
     public System.Action OnFantasmaTermino;
 
     private float temporizador;
@@ -46,6 +44,7 @@ public class CerebroFantasma : MonoBehaviour
     private bool cicloManosIniciado = false;
     private int ciclosCompletados = 0;
     private EstadoFantasma estadoActual = EstadoFantasma.Inactivo;
+    private bool debeRobarAlTerminarJumpscare = false;
 
     void Awake()
     {
@@ -54,10 +53,18 @@ public class CerebroFantasma : MonoBehaviour
 
     public void IniciarCiclo()
     {
+        Debug.Log("CerebroFantasma: IniciarCiclo() llamado.");
         DetenerYLimpiar();
-        temporizador = tiempoAusente;
-        estadoActual = EstadoFantasma.Ausente;
-        Debug.Log("CerebroFantasma: Ciclo iniciado en estado Ausente.");
+        temporizador = tiempoEsperaAntesDeRobar;
+        estadoActual = EstadoFantasma.EsperandoRobo;
+
+        if (jugador == null && Camera.main != null)
+            jugador = Camera.main.transform;
+
+        if (jugador == null)
+            Debug.LogError("❌ CerebroFantasma: No se encontró al 'jugador' (Camera.main es null y no hay asignación manual).");
+
+        Debug.Log($"CerebroFantasma: Estado cambiado a EsperandoRobo. Temporizador iniciado en {temporizador} segundos.");
     }
 
     public void DetenerYLimpiar()
@@ -67,135 +74,137 @@ public class CerebroFantasma : MonoBehaviour
         manosActivas = false;
         cicloManosIniciado = false;
         ciclosCompletados = 0;
+        debeRobarAlTerminarJumpscare = false;
 
-        if (objetoFantasma != null)
-            objetoFantasma.SetActive(false);
-
-        if (manoIzquierda != null)
-            manoIzquierda.SetActive(false);
-
-        if (manoDerecha != null)
-            manoDerecha.SetActive(false);
+        if (objetoFantasma != null) objetoFantasma.SetActive(false);
+        if (manoIzquierda != null) manoIzquierda.SetActive(false);
+        if (manoDerecha != null) manoDerecha.SetActive(false);
     }
 
     void Update()
     {
-        switch (estadoActual)
+        if (Time.frameCount % 60 == 0)
+            Debug.Log($"CerebroFantasma Update corriendo. Estado: {estadoActual}, Tiempo restante: {temporizador:F1}");
+
+        if (estadoActual == EstadoFantasma.EsperandoRobo)
         {
-            case EstadoFantasma.Inactivo:
-                break;
+            temporizador -= Time.deltaTime;
 
-            case EstadoFantasma.Ausente:
+            if (temporizador <= 0)
+            {
+                Debug.Log("CerebroFantasma: Temporizador terminado. Evaluando robo y saltando...");
+                DeterminarSiRobara();
+                EjecutarJumpscare();
+            }
+        }
+        else if (estadoActual == EstadoFantasma.Manos)
+        {
+            if (!cicloManosIniciado) return;
 
-                if (tareaObjetos != null && tareaObjetos.objetosRecuperados.Count > 0)
+            temporizador -= Time.deltaTime;
+
+            if (temporizador <= 0)
+            {
+                if (manosActivas)
                 {
-                    temporizador -= Time.deltaTime;
+                    DesactivarManos();
+                    ciclosCompletados++;
 
-                    if (temporizador <= 0)
+                    if (ciclosCompletados >= ciclosManosMaximos)
                     {
-                        DevolverUnObjetoAlAzar();
-
-                        temporizador = tiempoDelayJumpscare;
-                        estadoActual = EstadoFantasma.EsperandoJumpscare;
+                        DetenerYLimpiar();
+                        OnFantasmaTermino?.Invoke();
+                        return;
                     }
+                    temporizador = tiempoManosInactivas;
                 }
-
-                break;
-
-            case EstadoFantasma.EsperandoJumpscare:
-
-                temporizador -= Time.deltaTime;
-
-                if (temporizador <= 0)
+                else
                 {
-                    estadoActual = EstadoFantasma.Jumpscare;
+                    ActivarManos();
+                    temporizador = tiempoManosActivas;
                 }
-
-                break;
-
-            case EstadoFantasma.Jumpscare:
-
-                AparecerFrenteJugador();
-
-                if (animatorFantasma != null)
-                {
-                    animatorFantasma.SetTrigger("Jumpscare");
-                }
-
-                if (audioSourceJumpscare != null && sonidoJumpscare != null)
-                {
-                    audioSourceJumpscare.PlayOneShot(sonidoJumpscare);
-                }
-
-                Invoke(nameof(MoverFantasma), 1.5f);
-                Invoke(nameof(ActivarManos), tiempoDelayManos);
-
-                cicloManosIniciado = false;
-                ciclosCompletados = 0;
-                estadoActual = EstadoFantasma.Manos;
-
-                break;
-
-            case EstadoFantasma.Manos:
-
-                if (!cicloManosIniciado) break;
-
-                temporizador -= Time.deltaTime;
-
-                if (temporizador <= 0)
-                {
-                    if (manosActivas)
-                    {
-                        DesactivarManos();
-                        ciclosCompletados++;
-
-                        if (ciclosCompletados >= ciclosManosMaximos)
-                        {
-                            DetenerYLimpiar();
-                            OnFantasmaTermino?.Invoke();
-                            Debug.Log("El fantasma terminó su ataque y se retiró.");
-                            return;
-                        }
-
-                        temporizador = tiempoManosInactivas;
-                    }
-                    else
-                    {
-                        ActivarManos();
-                        temporizador = tiempoManosActivas;
-                    }
-                }
-
-                break;
+            }
         }
     }
 
-    public void DevolverUnObjetoAlAzar()
+    void EjecutarJumpscare()
     {
+        Debug.Log("CerebroFantasma: ¡Ejecutando Jumpscare!");
+        estadoActual = EstadoFantasma.Jumpscare;
+
+        if (sistemaPanico != null)
+        {
+            sistemaPanico.AumentarPanico(panicoQueAumenta);
+        }
+
+        if (jugador != null && objetoFantasma != null)
+        {
+            Vector3 frenteHorizontal = Vector3.ProjectOnPlane(jugador.forward, Vector3.up).normalized;
+            if (frenteHorizontal == Vector3.zero) frenteHorizontal = jugador.forward;
+
+            Vector3 posicionJumpscare = jugador.position + frenteHorizontal * distanciaJumpscare + Vector3.up * ajusteAlturaJumpscare;
+
+            objetoFantasma.transform.position = posicionJumpscare;
+            objetoFantasma.transform.LookAt(new Vector3(jugador.position.x, objetoFantasma.transform.position.y, jugador.position.z));
+
+            objetoFantasma.SetActive(true);
+            Debug.Log("🧠 CerebroFantasma: Modelo del fantasma activado frente al jugador.");
+        }
+
+        if (animatorFantasma != null) animatorFantasma.SetTrigger("Jumpscare");
+        if (audioSourceJumpscare != null && sonidoJumpscare != null) audioSourceJumpscare.PlayOneShot(sonidoJumpscare);
+
+        Invoke(nameof(OcultarFantasmaYEmpezarManos), duracionJumpscare);
+    }
+
+    void OcultarFantasmaYEmpezarManos()
+    {
+        if (objetoFantasma != null) objetoFantasma.SetActive(false);
+
+        if (debeRobarAlTerminarJumpscare)
+        {
+            EjecutarRobo();
+        }
+
+        estadoActual = EstadoFantasma.Manos;
+        cicloManosIniciado = false;
+        ciclosCompletados = 0;
+        ActivarManos();
+    }
+
+    void DeterminarSiRobara()
+    {
+        debeRobarAlTerminarJumpscare = false;
+
         if (tareaObjetos == null)
         {
-            Debug.LogError("CerebroFantasma: No está asignada la referencia 'tareaObjetos' en el Inspector.");
+            return;
+        }
+        if (tareaObjetos.objetosRecuperados.Count == 0)
+        {
             return;
         }
 
-        if (tareaObjetos.objetosRecuperados.Count == 0)
+        int dado = Random.Range(0, 100);
+        if (dado < probabilidadRobar)
         {
-            Debug.Log("El fantasma intentó devolver un objeto, pero la lista está vacía.");
-            return;
+            debeRobarAlTerminarJumpscare = true;
         }
+    }
+
+    void EjecutarRobo()
+    {
+        if (tareaObjetos == null || tareaObjetos.objetosRecuperados.Count == 0) return;
 
         int indiceAleatorio = Random.Range(0, tareaObjetos.objetosRecuperados.Count);
         GameObject objetoA_Devolver = tareaObjetos.objetosRecuperados[indiceAleatorio];
 
-        // 1. Lo sacamos de recuperados y lo regresamos a pendientes ANTES de moverlo
         tareaObjetos.objetosRecuperados.RemoveAt(indiceAleatorio);
         tareaObjetos.objetos.Add(objetoA_Devolver);
 
-        // 2. Reactivamos el agarre VR que ZonaRecoleccion había apagado
         XRGrabInteractable grab = objetoA_Devolver.GetComponent<XRGrabInteractable>();
         if (grab != null) grab.enabled = true;
 
-        // 3. Restauramos la física por si estaba congelado
         Rigidbody rb = objetoA_Devolver.GetComponent<Rigidbody>();
         if (rb != null)
         {
@@ -203,101 +212,29 @@ public class CerebroFantasma : MonoBehaviour
             rb.useGravity = true;
         }
 
-        // 4. Lo regresamos a su punto inicial (Punto X)
         ObjetoRecogible scriptObjeto = objetoA_Devolver.GetComponent<ObjetoRecogible>();
-        if (scriptObjeto != null)
-        {
-            scriptObjeto.DevolverAlOrigen();
-        }
+        if (scriptObjeto != null) scriptObjeto.DevolverAlOrigen();
 
-        // 5. Actualizamos el progreso de la tarea (portapapeles)
         tareaObjetos.ActualizarProgresoExterno();
 
-        Debug.Log($"¡El fantasma devolvió el objeto '{objetoA_Devolver.name}' a su lugar!");
-    }
-
-    void AparecerFrenteJugador()
-    {
-        if (jugador == null)
-        {
-            if (Camera.main != null) jugador = Camera.main.transform;
-            else
-            {
-                Debug.LogError("CerebroFantasma: No hay 'jugador' asignado para el Jumpscare.");
-                return;
-            }
-        }
-
-        if (objetoFantasma == null)
-        {
-            Debug.LogError("CerebroFantasma: No está asignado 'objetoFantasma' en el Inspector.");
-            return;
-        }
-
-        Vector3 frenteHorizontal = Vector3.ProjectOnPlane(jugador.forward, Vector3.up).normalized;
-        if (frenteHorizontal == Vector3.zero) frenteHorizontal = jugador.forward;
-
-        Vector3 posicionJumpscare =
-            jugador.position +
-            frenteHorizontal * distanciaJumpscare +
-            Vector3.up * ajusteAlturaJumpscare;
-
-        objetoFantasma.transform.position = posicionJumpscare;
-
-        objetoFantasma.transform.LookAt(
-            new Vector3(
-                jugador.position.x,
-                objetoFantasma.transform.position.y,
-                jugador.position.z
-            )
-        );
-
-        objetoFantasma.SetActive(true);
-        Debug.Log("¡Jumpscare frente al jugador!");
-    }
-
-    void MoverFantasma()
-    {
-        if (objetoFantasma != null)
-        {
-            objetoFantasma.SetActive(false);
-
-            objetoFantasma.transform.position =
-                new Vector3(
-                    Random.Range(-10, 10),
-                    0,
-                    Random.Range(-10, 10)
-                );
-        }
-
-        Debug.Log("Fantasma se movió a otra posición");
+        Debug.Log($"🧠 CerebroFantasma: ¡El fantasma ha robado '{objetoA_Devolver.name}'!");
     }
 
     void ActivarManos()
     {
-        if (manoIzquierda != null)
-            manoIzquierda.SetActive(true);
-
-        if (manoDerecha != null)
-            manoDerecha.SetActive(true);
-
+        if (manoIzquierda != null) manoIzquierda.SetActive(true);
+        if (manoDerecha != null) manoDerecha.SetActive(true);
         manosActivas = true;
         cicloManosIniciado = true;
         temporizador = tiempoManosActivas;
-
-        Debug.Log("Manos activadas");
+        Debug.Log("🧠 CerebroFantasma: Manos activadas.");
     }
 
     void DesactivarManos()
     {
-        if (manoIzquierda != null)
-            manoIzquierda.SetActive(false);
-
-        if (manoDerecha != null)
-            manoDerecha.SetActive(false);
-
+        if (manoIzquierda != null) manoIzquierda.SetActive(false);
+        if (manoDerecha != null) manoDerecha.SetActive(false);
         manosActivas = false;
-
-        Debug.Log("Manos desactivadas");
+        Debug.Log("🧠 CerebroFantasma: Manos desactivadas.");
     }
 }
