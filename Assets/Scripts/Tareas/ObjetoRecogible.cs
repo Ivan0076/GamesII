@@ -6,6 +6,10 @@ public class ObjetoRecogible : MonoBehaviour, IInteractuable
 {
     public RecogerObjetoPerdidos tarea;
 
+    public Transform puntoDeOrigen;
+
+    [HideInInspector] public float bloquearEntregaHasta = 0f;
+
     private Rigidbody rb;
     private XRGrabInteractable grabInteractable;
     private bool agarradoPorMouse = false;
@@ -14,58 +18,35 @@ public class ObjetoRecogible : MonoBehaviour, IInteractuable
     private Vector3 posicionInicial;
     private Quaternion rotacionInicial;
 
-    // 🔥 AWKAE SE EJECUTA TAN PRONTO COMO CARGA LA ESCENA
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
         grabInteractable = GetComponent<XRGrabInteractable>();
 
-        // Congelamos la física temporalmente para que el objeto no caiga antes de sacar la posición
-        if (rb != null) rb.isKinematic = true;
-
-        // 🔥 EL TRUCO DEL RAYCAST: Ajustar al suelo inmediatamente
-        Vector3 puntoDeAparicion = transform.position;
-
-        // Lanzamos un rayo hacia abajo desde el objeto, hasta 5 metros
-        if (Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, 5f))
+        if (puntoDeOrigen != null)
         {
-            // Si toca el suelo, guardamos ese punto exacto
-            puntoDeAparicion = hit.point;
-
-            // Lo subimos un poquito para que no se hunda en el piso
-            puntoDeAparicion += Vector3.up * 0.05f;
+            posicionInicial = puntoDeOrigen.position;
+            rotacionInicial = puntoDeOrigen.rotation;
         }
-
-        posicionInicial = puntoDeAparicion;
-        rotacionInicial = transform.rotation;
-
-        // Lo movemos al punto exacto calculado
-        transform.position = posicionInicial;
-
-        Debug.Log($"📦 '{gameObject.name}' guardó su origen instantáneamente en: {posicionInicial}");
+        else
+        {
+            Debug.LogError($"❌ ¡El objeto '{gameObject.name}' no tiene Punto De Origen asignado! Regresará al lugar equivocado.");
+            posicionInicial = transform.position;
+            rotacionInicial = transform.rotation;
+        }
     }
 
     void Start()
     {
-        // El resto de inicializaciones van en Start
         if (tarea == null) tarea = FindAnyObjectByType<RecogerObjetoPerdidos>();
-
         if (Camera.main != null) camara = Camera.main.transform;
-
-        // Devolvemos las físicas a la normalidad una vez que ya tenemos la posición
-        if (rb != null) rb.isKinematic = false;
     }
 
     void Update()
     {
         if (tarea == null) return;
-
         bool puedeAgarrar = tarea.EstaIniciada && !tarea.EstaCompletada && !tarea.objetosRecuperados.Contains(gameObject);
-
-        if (grabInteractable != null && grabInteractable.enabled != puedeAgarrar)
-        {
-            grabInteractable.enabled = puedeAgarrar;
-        }
+        if (grabInteractable != null && grabInteractable.enabled != puedeAgarrar) grabInteractable.enabled = puedeAgarrar;
     }
 
     public void Interactuar()
@@ -92,25 +73,50 @@ public class ObjetoRecogible : MonoBehaviour, IInteractuable
     {
         agarradoPorMouse = false;
         transform.SetParent(null);
+        bloquearEntregaHasta = Time.time + 1.5f;
 
-        rb.isKinematic = true;
-
-        transform.position = posicionInicial;
-        transform.rotation = rotacionInicial;
-
-        Debug.Log($"🔄 ¡El fantasma teletransportó '{gameObject.name}' a {posicionInicial}!");
-
-        rb.linearVelocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-        rb.isKinematic = false;
+        if (puntoDeOrigen != null)
+        {
+            posicionInicial = puntoDeOrigen.position;
+            rotacionInicial = puntoDeOrigen.rotation;
+        }
 
         gameObject.SetActive(true);
+
+        if (rb != null)
+        {
+            if (!rb.isKinematic)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+
+            rb.isKinematic = true;
+            rb.useGravity = false;
+            rb.position = posicionInicial;
+            rb.rotation = rotacionInicial;
+        }
+
+        transform.SetPositionAndRotation(posicionInicial, rotacionInicial);
+
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.useGravity = true;
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        Debug.Log($"'{gameObject.name}' volvió a su punto de origen.");
     }
 
-    // Herramienta visual para ver el origen en el Editor
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawSphere(posicionInicial, 0.1f);
+        if (puntoDeOrigen != null)
+        {
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawLine(transform.position, puntoDeOrigen.position);
+            Gizmos.DrawWireSphere(puntoDeOrigen.position, 0.2f);
+        }
     }
 }
