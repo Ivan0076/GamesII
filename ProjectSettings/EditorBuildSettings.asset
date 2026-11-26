@@ -14,7 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/CineNivel1.unity
     guid: 53207624ace6f9d428bcbc867b80632f
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/CineNivel2.unity
     guid: 6e86909295c60e34a8ca22f583346008
   - enabled: 0
