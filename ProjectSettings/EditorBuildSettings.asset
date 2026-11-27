@@ -14,18 +14,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/CineNivel1.unity
     guid: 53207624ace6f9d428bcbc867b80632f
-  - enabled: 0
-    path: Assets/Scenes/CineNivel2.unity
-    guid: 6e86909295c60e34a8ca22f583346008
-  - enabled: 0
-    path: Assets/Scenes/CineNivel3.unity
-    guid: 8d612c99611836b41859effedcde9d90
-  - enabled: 0
-    path: Assets/Scenes/CineNivel4.unity
-    guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 0
-    path: Assets/Scenes/CineNivel5.unity
-    guid: 61c9d693f6005aa43a532158a7ba9242
+  - enabled: 1
+    path: Assets/Scenes/EscenaMuerte.unity
+    guid: 7bb7135b69f21e6479d4ac0c50f08e8f
   - enabled: 1
     path: Assets/Scenes/TransicionNoche.unity
     guid: b04477b2d21a0a84889f0190069f7e41

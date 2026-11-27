@@ -1,19 +1,39 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public class PausaMenu : MonoBehaviour
 {
-    public GameObject menuPausa; // Panel del menú de pausa
+    [Header("UI de Pausa")]
+    public GameObject menuPausa;
+
+    [Header("Control VR")]
+    public InputActionProperty botonPausa;
+
     private bool juegoPausado = false;
 
-    void Update()
+    private void OnEnable()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (botonPausa.action != null)
         {
-            Debug.Log("Escape presionado");
-            if (juegoPausado) Reanudar();
-            else Pausar();
+            botonPausa.action.Enable();
+            botonPausa.action.performed += OnPausaPresionada;
         }
+    }
+
+    private void OnDisable()
+    {
+        if (botonPausa.action != null)
+        {
+            botonPausa.action.performed -= OnPausaPresionada;
+            botonPausa.action.Disable();
+        }
+    }
+
+    private void OnPausaPresionada(InputAction.CallbackContext context)
+    {
+        if (juegoPausado) Reanudar();
+        else Pausar();
     }
 
     public void Pausar()
@@ -21,9 +41,6 @@ public class PausaMenu : MonoBehaviour
         menuPausa.SetActive(true);
         Time.timeScale = 0f;
         juegoPausado = true;
-
-        Cursor.visible = true;                  // Mostrar cursor
-        Cursor.lockState = CursorLockMode.None; // Liberar cursor
     }
 
     public void Reanudar()
@@ -31,15 +48,10 @@ public class PausaMenu : MonoBehaviour
         menuPausa.SetActive(false);
         Time.timeScale = 1f;
         juegoPausado = false;
-
-        Cursor.visible = false;                 // Ocultar cursor
-        Cursor.lockState = CursorLockMode.Locked; // Bloquear cursor al centro
     }
-
 
     public void SalirJuego()
     {
-        Debug.Log("Botón presionado, cargando escena...");
         Time.timeScale = 1f;
         SceneManager.LoadScene("MenuPrincipal");
     }

@@ -11,6 +11,7 @@ public class ControlFantasma : MonoBehaviour
     public AudioClip sonidoAparicion;
 
     public System.Action OnFantasmaRetirado;
+    private bool fantasmaOcupado = false; // 🔥 Nueva bandera de control
 
     void Awake()
     {
@@ -28,9 +29,17 @@ public class ControlFantasma : MonoBehaviour
     {
         if (cerebro == null) return;
 
-        // Quitamos la línea que apagaba el objeto aquí
-        cerebro.gameObject.SetActive(true);
+        // Si ya está en medio de un ataque, ignorar la orden del Director
+        if (fantasmaOcupado)
+        {
+            Debug.Log("ControlFantasma: Ya está en ciclo. Ignorando orden.");
+            return;
+        }
 
+        // Marcamos como ocupado INMEDIATAMENTE
+        fantasmaOcupado = true;
+
+        cerebro.gameObject.SetActive(true);
         cerebro.IniciarCiclo();
 
         if (audioSource != null && sonidoAparicion != null)
@@ -39,13 +48,16 @@ public class ControlFantasma : MonoBehaviour
 
     private void RetirarFantasma()
     {
+        fantasmaOcupado = false; // 🔥 Liberamos la bandera para el próximo ciclo
         if (fantasma != null) fantasma.SetActive(false);
+
         OnFantasmaRetirado?.Invoke();
-        Debug.Log("ControlFantasma: El fantasma ha terminado su ciclo (RetirarFantasma).");
+        Debug.Log("ControlFantasma: Ciclo finalizado. Listo para el cooldown.");
     }
 
     public void DesaparecerFantasma()
     {
+        fantasmaOcupado = false;
         if (cerebro != null) cerebro.DetenerYLimpiar();
         if (fantasma != null) fantasma.SetActive(false);
     }

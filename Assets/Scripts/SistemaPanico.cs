@@ -103,6 +103,11 @@ public class SistemaPanico : MonoBehaviour
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+        PlayerPrefs.SetInt("AsesinoMuerte", 0); // 0 = Default / Pánico
+        PlayerPrefs.Save();
+
+        Time.timeScale = 1f;
+        UnityEngine.SceneManagement.SceneManager.LoadScene("EscenaMuerte");
     }
 
     public void VolverAlMenu()

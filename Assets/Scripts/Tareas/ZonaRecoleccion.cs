@@ -8,28 +8,41 @@ public class ZonaRecoleccion : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        ProcesarObjeto(other);
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        ProcesarObjeto(other);
+    }
+
+    private void ProcesarObjeto(Collider other)
+    {
         if (tarea == null || tarea.EstaCompletada) return;
 
-        ObjetoRecogible obj = other.GetComponent<ObjetoRecogible>();
-        if (obj != null)
+        ObjetoRecogible obj = other.GetComponentInParent<ObjetoRecogible>();
+        if (obj == null) return;
+
+        if (Time.time < obj.bloquearEntregaHasta) return;
+        if (tarea.objetosRecuperados.Contains(obj.gameObject)) return;
+
+        XRGrabInteractable grab = obj.GetComponent<XRGrabInteractable>();
+        if (grab != null && grab.isSelected) return;
+
+        if (tarea.EntregarObjeto(obj.gameObject))
         {
-            // Intentamos entregar el objeto a la tarea
-            if (tarea.EntregarObjeto(obj.gameObject))
+            Rigidbody rb = obj.GetComponent<Rigidbody>();
+            if (rb != null)
             {
-                // Si se entregó con éxito, lo congelamos en la zona
-                Rigidbody rb = obj.GetComponent<Rigidbody>();
-                if (rb != null)
-                {
-                    rb.isKinematic = true;
-                    rb.useGravity = false;
-                }
+                rb.isKinematic = true;
+                rb.useGravity = false;
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
 
-                // Desactivamos el agarre para que el jugador no lo pueda sacar de la zona
-                XRGrabInteractable grab = obj.GetComponent<XRGrabInteractable>();
-                if (grab != null) grab.enabled = false;
-
-                // Como el ObjetoRecogible está en la lista, su método Interactuar() 
-                // tampoco dejará agarrarlo con el mouse.
+            if (grab != null)
+            {
+                grab.enabled = false;
             }
         }
     }

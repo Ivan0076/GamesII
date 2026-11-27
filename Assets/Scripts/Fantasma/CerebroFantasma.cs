@@ -77,14 +77,14 @@ public class CerebroFantasma : MonoBehaviour
         // 1. ROBAR
         DeterminarSiRobara();
 
-        // 2. ESPERAR 3 SEGUNDOS
+        // 2. ESPERAR
         yield return new WaitForSeconds(tiempoEntreRoboYJumpscare);
 
         // 3. JUMPSCARE
         EjecutarJumpscare();
         yield return new WaitForSeconds(duracionJumpscare);
 
-        // 4. TAPAR LA VISIÓN (UNA SOLA VEZ)
+        // 4. TAPAR LA VISIÓN
         if (objetoFantasma != null) objetoFantasma.SetActive(false);
 
         if (manoIzquierda != null) manoIzquierda.SetActive(true);
@@ -95,10 +95,10 @@ public class CerebroFantasma : MonoBehaviour
         if (manoIzquierda != null) manoIzquierda.SetActive(false);
         if (manoDerecha != null) manoDerecha.SetActive(false);
 
-        // 5. FIN DEL CICLO
+        // 5. FIN DEL CICLO Y LIBERACIÓN DEL CANDADO
+        Debug.Log("Fantasma: Ciclo completado. Liberando candado.");
         enCiclo = false;
         OnFantasmaTermino?.Invoke();
-        Debug.Log("Fantasma: Ciclo terminado.");
     }
 
     void EjecutarJumpscare()

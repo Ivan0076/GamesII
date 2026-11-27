@@ -46,7 +46,10 @@ public class ObjetoRecogible : MonoBehaviour, IInteractuable
     {
         if (tarea == null) return;
         bool puedeAgarrar = tarea.EstaIniciada && !tarea.EstaCompletada && !tarea.objetosRecuperados.Contains(gameObject);
-        if (grabInteractable != null && grabInteractable.enabled != puedeAgarrar) grabInteractable.enabled = puedeAgarrar;
+        if (grabInteractable != null && grabInteractable.enabled != puedeAgarrar)
+        {
+            grabInteractable.enabled = puedeAgarrar;
+        }
     }
 
     public void Interactuar()
@@ -57,15 +60,22 @@ public class ObjetoRecogible : MonoBehaviour, IInteractuable
         if (!agarradoPorMouse)
         {
             agarradoPorMouse = true;
-            rb.isKinematic = true;
-            transform.SetParent(camara);
-            transform.localPosition = new Vector3(0, -0.3f, 1f);
+            if (rb != null) rb.isKinematic = true;
+            if (camara != null)
+            {
+                transform.SetParent(camara);
+                transform.localPosition = new Vector3(0, -0.3f, 1f);
+            }
         }
         else
         {
             agarradoPorMouse = false;
-            rb.isKinematic = false;
             transform.SetParent(null);
+            if (rb != null)
+            {
+                rb.isKinematic = false;
+                rb.useGravity = true;
+            }
         }
     }
 
@@ -107,7 +117,12 @@ public class ObjetoRecogible : MonoBehaviour, IInteractuable
             rb.angularVelocity = Vector3.zero;
         }
 
-        Debug.Log($"'{gameObject.name}' volvió a su punto de origen.");
+        if (grabInteractable != null)
+        {
+            grabInteractable.enabled = true;
+        }
+
+        Debug.Log($"🔄 '{gameObject.name}' volvió a su punto de origen.");
     }
 
     private void OnDrawGizmosSelected()
