@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Video;
-using UnityEngine.SceneManagement;
 using System.Collections;
-using System.Collections.Generic;
+using System.Collections.Generic; // Necesario para usar List
 
 public class JumpscareController : MonoBehaviour
 {
@@ -12,23 +11,15 @@ public class JumpscareController : MonoBehaviour
     public Transform camaraJugador;
 
     [Header("UI a Ocultar durante el susto")]
-    [Tooltip("Arrastra aquí el crosshair, panel de pausa, etc. Se apagarán durante el susto.")]
+    [Tooltip("Arrastra aquí el crosshair, panel de pausa, etc. Se apagarán y no volverán hasta reiniciar (o hasta que tú decidas).")]
     public List<GameObject> panelesAOcultar = new List<GameObject>();
 
     [Header("Audio y Game Over")]
-    public AudioSource audioSource; // Añadí esto por si lo tienes asignado
     public AudioClip sonidoGameOver;
-
-    // Ya no usaremos pantallaGameOver local, usaremos la escena, pero lo dejo por si acaso
     public GameObject pantallaGameOver;
 
     public GameObject modeloPerseguidor;
     public float duracionJumpscare = 4f;
-
-    [Header("Identificador de Muerte")]
-    [Tooltip("1 = Dino, 2 = Asesina, 3 = Fantasma")]
-    public int idEnemigoMuerte = 1;
-    public string nombreEscenaMuerte = "EscenaMuerte";
 
     private bool yaActivado = false;
 
@@ -45,11 +36,10 @@ public class JumpscareController : MonoBehaviour
         if (other.CompareTag("Player") || other.transform.root.CompareTag("Player"))
         {
             yaActivado = true;
-            IniciarJumpscare(); // Llamada única
+            IniciarJumpscare();
         }
     }
 
-    // 🔥 AQUÍ ESTÁ EL MÉTODO CORREGIDO (Solo uno)
     private void IniciarJumpscare()
     {
         if (modeloPerseguidor != null) modeloPerseguidor.SetActive(false);
@@ -63,42 +53,36 @@ public class JumpscareController : MonoBehaviour
             if (panel != null) panel.SetActive(false);
         }
 
+
         if (canvasJumpscare != null && camaraJugador != null)
         {
             canvasJumpscare.SetActive(true);
 
             // Centrar perfectamente frente a la cámara
+            // Aleja el video 0.6 metros y lo baja un poquito (0.15 metros) para centrarlo en los ojos
             canvasJumpscare.transform.position = camaraJugador.position + (camaraJugador.forward * 0.6f) + (Vector3.down * 0.15f);
             canvasJumpscare.transform.rotation = camaraJugador.rotation;
             canvasJumpscare.transform.localScale = new Vector3(0.001f, 0.001f, 0.001f);
         }
 
-        if (videoJumpscare != null) videoJumpscare.Play();
-        if (audioSource != null && sonidoGameOver != null) audioSource.PlayOneShot(sonidoGameOver);
+        if (videoJumpscare != null)
+        {
+            videoJumpscare.Play();
+        }
 
-        // Iniciamos la secuencia que carga la nueva escena
-        StartCoroutine(SecuenciaCargarMuerte());
+        StartCoroutine(SecuenciaGameOver());
     }
 
-    // 🔥 ESTA ES LA NUEVA CORRUTINA
-    private IEnumerator SecuenciaCargarMuerte()
+    private IEnumerator SecuenciaGameOver()
     {
-        // Esperamos a que termine el video usando Realtime (porque Time.timeScale = 0)
         yield return new WaitForSecondsRealtime(duracionJumpscare);
 
         if (videoJumpscare != null) videoJumpscare.Stop();
         if (canvasJumpscare != null) canvasJumpscare.SetActive(false);
 
-        // Guardamos quién nos mató para que la siguiente escena lo lea
-        PlayerPrefs.SetInt("AsesinoMuerte", idEnemigoMuerte);
-        PlayerPrefs.Save();
-
-        // Restauramos el tiempo y liberamos el cursor
-        Time.timeScale = 1f;
+        if (pantallaGameOver != null)
+            pantallaGameOver.SetActive(true);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
-        // Cargamos la escena de muerte
-        SceneManager.LoadScene(nombreEscenaMuerte);
     }
 }

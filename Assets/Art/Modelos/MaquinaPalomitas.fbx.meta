@@ -3,7 +3,22 @@ guid: f0b00b44013c5394596d703bb9c91622
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Glass
+    second: {fileID: 2100000, guid: e77c21ce42fe9f147a2211bcdc954362, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PlainPopcorn
+    second: {fileID: 2100000, guid: f83bce68a77810a44ae4a3758e8ab413, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PopcornMachine
+    second: {fileID: 2100000, guid: cb568ef0fe1e61b499d16915d0db19af, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

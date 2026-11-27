@@ -3,7 +3,17 @@ guid: 1672a48b4b542c54b990abb0ecbdfaf3
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: letreroSala
+    second: {fileID: 2100000, guid: 49084d9f7b62dfc4fb55fa8a99eb5cd1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: pack_opaque
+    second: {fileID: 2100000, guid: 75891c5591f593c40b11725908b55723, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
