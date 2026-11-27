@@ -15,11 +15,14 @@ EditorBuildSettings:
     path: Assets/Scenes/CineNivel1.unity
     guid: 53207624ace6f9d428bcbc867b80632f
   - enabled: 1
-    path: Assets/Scenes/EscenaMuerte.unity
-    guid: 7bb7135b69f21e6479d4ac0c50f08e8f
+    path: Assets/Scenes/CineNivel2.unity
+    guid: b2bf93770c37baa4885760fd2c869654
+  - enabled: 1
+    path: Assets/Scenes/CineNivel3.unity
+    guid: f0c753453290fd947b7d0326e6961ed6
   - enabled: 1
     path: Assets/Scenes/TransicionNoche.unity
-    guid: b04477b2d21a0a84889f0190069f7e41
+    guid: cd3ec9b54bc5fde41a3bb00b9c622451
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 312d775608b31b3469f2f476ba673981, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

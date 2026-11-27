@@ -55,4 +55,10 @@ public class PausaMenu : MonoBehaviour
         Time.timeScale = 1f;
         SceneManager.LoadScene("MenuPrincipal");
     }
+
+    public void ReiniciarNivel()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
 }
